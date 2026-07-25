@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JARVIS Life Planner</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Workspace">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">J</div>
+          <div>
+            <h1>JARVIS</h1>
+            <p>Life Planner</p>
+          </div>
+        </div>
+
+        <nav class="nav-list" aria-label="Planner views">
+          <button class="nav-item active" type="button" data-view="today" title="Today">
+            <span aria-hidden="true">T</span>
+            <span>Today</span>
+          </button>
+          <button class="nav-item" type="button" data-view="tasks" title="Tasks">
+            <span aria-hidden="true">L</span>
+            <span>Tasks</span>
+          </button>
+          <button class="nav-item" type="button" data-view="focus" title="Focus">
+            <span aria-hidden="true">F</span>
+            <span>Focus</span>
+          </button>
+        </nav>
+
+        <div class="side-metrics" aria-label="Planner metrics">
+          <div>
+            <strong id="metricOpen">0</strong>
+            <span>Open</span>
+          </div>
+          <div>
+            <strong id="metricPlanned">0h</strong>
+            <span>Planned</span>
+          </div>
+          <div>
+            <strong id="metricDone">0%</strong>
+            <span>Done</span>
+          </div>
+        </div>
+
+        <div class="settings-panel">
+          <label>
+            Day start
+            <input id="dayStart" type="time" value="09:00" />
+          </label>
+          <label>
+            Day end
+            <input id="dayEnd" type="time" value="18:00" />
+          </label>
+          <label>
+            Focus block
+            <input id="focusMinutes" type="number" min="15" max="120" step="5" value="45" />
+          </label>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow" id="todayLabel">Today</p>
+            <h2 id="greeting">Good day</h2>
+          </div>
+          <div class="topbar-actions">
+            <button id="importBtn" class="icon-button" type="button" title="Import data" aria-label="Import data">I</button>
+            <button id="exportBtn" class="icon-button" type="button" title="Export data" aria-label="Export data">E</button>
+            <button id="resetBtn" class="icon-button danger" type="button" title="Reset demo data" aria-label="Reset demo data">R</button>
+            <input id="importFile" type="file" accept="application/json" hidden />
+          </div>
+        </header>
+
+        <section class="command-strip" aria-label="Assistant command">
+          <div class="command-input">
+            <label for="assistantCommand">Ask JARVIS</label>
+            <input
+              id="assistantCommand"
+              type="text"
+              placeholder="Add study networks tomorrow 2h high impact"
+              autocomplete="off"
+            />
+          </div>
+          <button id="voiceBtn" class="icon-button" type="button" title="Voice input" aria-label="Voice input">V</button>
+          <button id="commandBtn" class="primary-button" type="button">Run</button>
+          <button id="planBtn" class="primary-button accent" type="button">Plan Day</button>
+        </section>
+
+        <section class="content-grid">
+          <section class="panel today-view" data-panel="today">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Timeline</p>
+                <h3>Daily Plan</h3>
+              </div>
+              <button id="clearPlanBtn" class="text-button" type="button">Clear</button>
+            </div>
+            <div id="timeline" class="timeline" aria-live="polite"></div>
+          </section>
+
+          <section class="panel tasks-view" data-panel="tasks">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Backlog</p>
+                <h3>Tasks</h3>
+              </div>
+              <button id="addTaskBtn" class="text-button" type="button">Add</button>
+            </div>
+
+            <form id="taskForm" class="task-form">
+              <input id="taskTitle" type="text" placeholder="Task name" required />
+              <select id="taskArea" aria-label="Area">
+                <option>Study</option>
+                <option>Career</option>
+                <option>Health</option>
+                <option>Life Admin</option>
+                <option>Creative</option>
+              </select>
+              <input id="taskDue" type="date" aria-label="Due date" />
+              <select id="taskEnergy" aria-label="Energy">
+                <option value="deep">Deep</option>
+                <option value="medium">Medium</option>
+                <option value="light">Light</option>
+              </select>
+              <label class="range-field">
+                Impact
+                <input id="taskImpact" type="range" min="1" max="5" value="3" />
+              </label>
+              <label class="range-field">
+                Hours
+                <input id="taskEffort" type="number" min="0.25" max="8" step="0.25" value="1" />
+              </label>
+              <button class="primary-button" type="submit">Save</button>
+            </form>
+
+            <div class="task-toolbar">
+              <div class="segmented" role="group" aria-label="Task filter">
+                <button class="segment active" type="button" data-filter="open">Open</button>
+                <button class="segment" type="button" data-filter="planned">Planned</button>
+                <button class="segment" type="button" data-filter="done">Done</button>
+              </div>
+              <select id="sortMode" aria-label="Sort tasks">
+                <option value="smart">Smart sort</option>
+                <option value="due">Due date</option>
+                <option value="impact">Impact</option>
+                <option value="effort">Effort</option>
+              </select>
+            </div>
+
+            <div id="taskList" class="task-list" aria-live="polite"></div>
+          </section>
+
+          <aside class="right-rail">
+            <section class="panel insight-panel">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">Signals</p>
+                  <h3>Assistant</h3>
+                </div>
+              </div>
+              <div id="insights" class="insights"></div>
+            </section>
+
+            <section class="panel focus-panel" data-panel="focus">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">Focus</p>
+                  <h3 id="focusTitle">Ready</h3>
+                </div>
+              </div>
+              <canvas id="focusCanvas" width="320" height="160" aria-label="Focus progress"></canvas>
+              <div class="focus-timer" id="focusTime">45:00</div>
+              <div class="focus-actions">
+                <button id="startFocusBtn" class="primary-button" type="button">Start</button>
+                <button id="pauseFocusBtn" class="text-button" type="button">Pause</button>
+                <button id="finishFocusBtn" class="text-button" type="button">Finish</button>
+              </div>
+            </section>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <template id="taskTemplate">
+      <article class="task-card">
+        <div class="task-main">
+          <button class="check-button" type="button" title="Toggle complete" aria-label="Toggle complete"></button>
+          <div>
+            <h4></h4>
+            <p></p>
+          </div>
+        </div>
+        <div class="task-meta"></div>
+        <div class="task-actions">
+          <button class="mini-button plan-one" type="button">Plan</button>
+          <button class="mini-button delete-one" type="button">Delete</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
