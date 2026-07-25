@@ -1,6 +1,7 @@
 .DS_Store
 Thumbs.db
 *.log
+validation-*.png
 .env
 .env.local
 node_modules/

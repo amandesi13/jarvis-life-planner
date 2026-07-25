@@ -22,9 +22,21 @@
             <span aria-hidden="true">T</span>
             <span>Today</span>
           </button>
+          <button class="nav-item" type="button" data-view="study" title="Study">
+            <span aria-hidden="true">S</span>
+            <span>Study</span>
+          </button>
           <button class="nav-item" type="button" data-view="tasks" title="Tasks">
             <span aria-hidden="true">L</span>
             <span>Tasks</span>
+          </button>
+          <button class="nav-item" type="button" data-view="life" title="Life">
+            <span aria-hidden="true">G</span>
+            <span>Life</span>
+          </button>
+          <button class="nav-item" type="button" data-view="updates" title="Updates">
+            <span aria-hidden="true">U</span>
+            <span>Updates</span>
           </button>
           <button class="nav-item" type="button" data-view="focus" title="Focus">
             <span aria-hidden="true">F</span>
@@ -90,6 +102,28 @@
           <button id="voiceBtn" class="icon-button" type="button" title="Voice input" aria-label="Voice input">V</button>
           <button id="commandBtn" class="primary-button" type="button">Run</button>
           <button id="planBtn" class="primary-button accent" type="button">Plan Day</button>
+          <button id="refreshUpdatesBtn" class="primary-button quiet" type="button">Refresh</button>
+        </section>
+
+        <section class="daily-brief" aria-label="Daily brief">
+          <article class="brief-card weather-card">
+            <div>
+              <p class="eyebrow">Dresden Weather</p>
+              <h3 id="weatherTemp">Loading</h3>
+              <p id="weatherSummary">Checking today's conditions</p>
+            </div>
+            <div class="weather-mark" id="weatherIcon" aria-hidden="true">--</div>
+          </article>
+          <article class="brief-card">
+            <p class="eyebrow">Study Readiness</p>
+            <h3 id="studyReadiness">Calibrating</h3>
+            <p id="studyReadinessText">Balancing deep work with lighter review.</p>
+          </article>
+          <article class="brief-card">
+            <p class="eyebrow">Life Queue</p>
+            <h3 id="lifeQueue">0 items</h3>
+            <p id="lifeQueueText">Grocery and admin load for today.</p>
+          </article>
         </section>
 
         <section class="content-grid">
@@ -102,6 +136,28 @@
               <button id="clearPlanBtn" class="text-button" type="button">Clear</button>
             </div>
             <div id="timeline" class="timeline" aria-live="polite"></div>
+          </section>
+
+          <section class="panel study-view" data-panel="study">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Study Modes</p>
+                <h3>Learning Console</h3>
+              </div>
+              <button id="quickStudyBtn" class="text-button" type="button">Quick Study</button>
+            </div>
+            <div class="study-mode-grid" id="studyModes" aria-label="Study modes"></div>
+            <div class="study-workbench">
+              <div>
+                <p class="eyebrow">Active Mode</p>
+                <h4 id="activeStudyMode">Deep Work</h4>
+                <p id="activeStudyText">One demanding concept, no context switching.</p>
+              </div>
+              <div class="study-stats">
+                <span><strong id="studyBlockMinutes">50</strong> min</span>
+                <span><strong id="studyBreakMinutes">10</strong> break</span>
+              </div>
+            </div>
           </section>
 
           <section class="panel tasks-view" data-panel="tasks">
@@ -120,6 +176,7 @@
                 <option>Career</option>
                 <option>Health</option>
                 <option>Life Admin</option>
+                <option>Grocery</option>
                 <option>Creative</option>
               </select>
               <input id="taskDue" type="date" aria-label="Due date" />
@@ -157,6 +214,17 @@
           </section>
 
           <aside class="right-rail">
+            <section class="panel updates-panel" data-panel="updates">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">Dresden</p>
+                  <h3>Local Updates</h3>
+                </div>
+                <button id="openSourcesBtn" class="text-button" type="button">Sources</button>
+              </div>
+              <div id="updatesList" class="updates-list" aria-live="polite"></div>
+            </section>
+
             <section class="panel insight-panel">
               <div class="section-head">
                 <div>
@@ -183,6 +251,30 @@
               </div>
             </section>
           </aside>
+
+          <section class="panel grocery-panel" data-panel="life">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Grocery</p>
+                <h3>Practical List</h3>
+              </div>
+              <button id="seedGroceriesBtn" class="text-button" type="button">Essentials</button>
+            </div>
+            <form id="groceryForm" class="grocery-form">
+              <input id="groceryName" type="text" placeholder="Add grocery item" required />
+              <select id="groceryCategory" aria-label="Grocery category">
+                <option>Produce</option>
+                <option>Protein</option>
+                <option>Pantry</option>
+                <option>Dairy</option>
+                <option>Household</option>
+                <option>Snacks</option>
+              </select>
+              <button class="primary-button" type="submit">Add</button>
+            </form>
+            <div id="grocerySuggestions" class="suggestion-strip"></div>
+            <div id="groceryList" class="grocery-list" aria-live="polite"></div>
+          </section>
         </section>
       </main>
     </div>
