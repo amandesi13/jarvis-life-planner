@@ -1,5 +1,6 @@
-const storageKey = "jarvis-life-planner:v2";
-const oldStorageKey = "jarvis-life-planner:v1";
+const storageKey = "jarvis-life-planner:v3";
+const previousStorageKeys = ["jarvis-life-planner:v2", "jarvis-life-planner:v1"];
+const fireTargetMinutes = 120;
 
 const dresden = {
   latitude: 51.0504,
@@ -124,12 +125,40 @@ const seedGroceries = [
   { id: crypto.randomUUID(), name: "Milk", category: "Dairy", checked: false }
 ];
 
+const seedMailFollowups = [
+  {
+    id: crypto.randomUUID(),
+    company: "Import Gmail follow-ups",
+    role: "Job conversations",
+    action: "Use the private JSON import to load current job follow-ups from Gmail.",
+    due: todayOffset(0),
+    priority: "medium",
+    status: "open",
+    source: "Local import",
+    url: ""
+  }
+];
+
+const dailyQuotes = [
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+  { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
+  { text: "Do the hard jobs first. The easy jobs will take care of themselves.", author: "Dale Carnegie" },
+  { text: "It always seems impossible until it is done.", author: "Nelson Mandela" },
+  { text: "You do not rise to the level of your goals. You fall to the level of your systems.", author: "James Clear" },
+  { text: "Discipline is choosing between what you want now and what you want most.", author: "Abraham Lincoln" },
+  { text: "A little progress each day adds up to big results.", author: "Satya Nani" },
+  { text: "The future depends on what you do today.", author: "Mahatma Gandhi" },
+  { text: "Focus on being productive instead of busy.", author: "Tim Ferriss" },
+  { text: "What gets measured gets improved.", author: "Peter Drucker" }
+];
+
 let state = loadState();
 let activeFilter = "open";
 let weatherState = null;
 let focusTimer = null;
 let focusRemaining = Number(state.settings.focusMinutes) * 60;
 let focusTotal = focusRemaining;
+let focusSessionStarted = false;
 
 const els = {
   greeting: document.querySelector("#greeting"),
@@ -154,7 +183,7 @@ const els = {
   sortMode: document.querySelector("#sortMode"),
   metricOpen: document.querySelector("#metricOpen"),
   metricPlanned: document.querySelector("#metricPlanned"),
-  metricDone: document.querySelector("#metricDone"),
+  metricFire: document.querySelector("#metricFire"),
   dayStart: document.querySelector("#dayStart"),
   dayEnd: document.querySelector("#dayEnd"),
   focusMinutes: document.querySelector("#focusMinutes"),
@@ -164,6 +193,8 @@ const els = {
   startFocusBtn: document.querySelector("#startFocusBtn"),
   pauseFocusBtn: document.querySelector("#pauseFocusBtn"),
   finishFocusBtn: document.querySelector("#finishFocusBtn"),
+  logThirtyBtn: document.querySelector("#logThirtyBtn"),
+  logTwoHoursBtn: document.querySelector("#logTwoHoursBtn"),
   exportBtn: document.querySelector("#exportBtn"),
   importBtn: document.querySelector("#importBtn"),
   importFile: document.querySelector("#importFile"),
@@ -188,7 +219,19 @@ const els = {
   groceryList: document.querySelector("#groceryList"),
   seedGroceriesBtn: document.querySelector("#seedGroceriesBtn"),
   updatesList: document.querySelector("#updatesList"),
-  openSourcesBtn: document.querySelector("#openSourcesBtn")
+  openSourcesBtn: document.querySelector("#openSourcesBtn"),
+  streakCount: document.querySelector("#streakCount"),
+  streakSummary: document.querySelector("#streakSummary"),
+  flameBadge: document.querySelector("#flameBadge"),
+  todayFocusMinutes: document.querySelector("#todayFocusMinutes"),
+  dailyTargetStatus: document.querySelector("#dailyTargetStatus"),
+  bestFocusDay: document.querySelector("#bestFocusDay"),
+  focusCalendar: document.querySelector("#focusCalendar"),
+  streakRing: document.querySelector("#streakRing"),
+  dailyQuote: document.querySelector("#dailyQuote"),
+  quoteAuthor: document.querySelector("#quoteAuthor"),
+  mailFollowups: document.querySelector("#mailFollowups"),
+  clearMailDoneBtn: document.querySelector("#clearMailDoneBtn")
 };
 
 function todayOffset(days) {
@@ -202,6 +245,8 @@ function defaultState() {
     tasks: seedTasks.map((task) => ({ ...task, id: crypto.randomUUID() })),
     groceries: seedGroceries.map((item) => ({ ...item, id: crypto.randomUUID() })),
     plan: [],
+    focusLog: {},
+    mailFollowups: seedMailFollowups.map((item) => ({ ...item, id: crypto.randomUUID() })),
     updates: [],
     weather: null,
     settings: {
@@ -216,12 +261,14 @@ function defaultState() {
 function loadState() {
   const fallback = defaultState();
   try {
-    const saved = JSON.parse(localStorage.getItem(storageKey) || localStorage.getItem(oldStorageKey));
+    const saved = JSON.parse(localStorage.getItem(storageKey) || previousStorageKeys.map((key) => localStorage.getItem(key)).find(Boolean));
     if (!saved) return fallback;
     return {
       ...fallback,
       ...saved,
       groceries: saved.groceries || fallback.groceries,
+      focusLog: saved.focusLog || fallback.focusLog,
+      mailFollowups: saved.mailFollowups || fallback.mailFollowups,
       updates: saved.updates || [],
       weather: saved.weather || null,
       settings: { ...fallback.settings, ...saved.settings }
@@ -244,6 +291,51 @@ function timeFromMinutes(total) {
   const hours = Math.floor(total / 60);
   const minutes = total % 60;
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function dateKey(date = new Date()) {
+  return date.toISOString().slice(0, 10);
+}
+
+function addDays(date, days) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function focusMinutesFor(key = dateKey()) {
+  return Math.round(Number(state.focusLog?.[key]?.minutes || 0));
+}
+
+function logFocusMinutes(minutes, source = "manual") {
+  const amount = Math.max(1, Math.round(minutes));
+  const key = dateKey();
+  state.focusLog[key] = state.focusLog[key] || { minutes: 0, sessions: [] };
+  state.focusLog[key].minutes += amount;
+  state.focusLog[key].sessions.push({
+    minutes: amount,
+    source,
+    mode: activeStudyMode().name,
+    loggedAt: new Date().toISOString()
+  });
+  saveState();
+  render();
+}
+
+function currentFireStreak() {
+  let streak = 0;
+  let cursor = new Date(`${dateKey()}T12:00:00`);
+  while (focusMinutesFor(dateKey(cursor)) >= fireTargetMinutes) {
+    streak += 1;
+    cursor = addDays(cursor, -1);
+  }
+  return streak;
+}
+
+function bestFocusDayEntry() {
+  return Object.entries(state.focusLog || {})
+    .map(([key, value]) => ({ key, minutes: Math.round(Number(value.minutes || 0)) }))
+    .sort((a, b) => b.minutes - a.minutes)[0];
 }
 
 function formatDate(value) {
@@ -299,6 +391,18 @@ function parseCommand(text) {
   if (lower.startsWith("buy ") || lower.startsWith("grocery ")) {
     const name = clean.replace(/^(buy|grocery)\s+/i, "").trim();
     addGrocery(name, guessGroceryCategory(name));
+    return null;
+  }
+
+  if (lower.includes("log") && (lower.includes("focus") || lower.includes("study"))) {
+    const minutesMatch = lower.match(/(\d+(?:\.\d+)?)\s*(m|min|minute|minutes)/);
+    const hoursMatch = lower.match(/(\d+(?:\.\d+)?)\s*(h|hr|hrs|hour|hours)/);
+    const minutes = minutesMatch
+      ? Number(minutesMatch[1])
+      : hoursMatch
+        ? Number(hoursMatch[1]) * 60
+        : fireTargetMinutes;
+    logFocusMinutes(minutes, "assistant-command");
     return null;
   }
 
@@ -740,15 +844,92 @@ function renderInsights() {
 
 function renderMetrics() {
   const open = state.tasks.filter((task) => task.status !== "done").length;
-  const done = state.tasks.filter((task) => task.status === "done").length;
-  const total = state.tasks.length || 1;
   const plannedHours = state.plan.reduce((sum, block) => {
     return sum + (minutesFromTime(block.end) - minutesFromTime(block.start)) / 60;
   }, 0);
 
   els.metricOpen.textContent = open;
   els.metricPlanned.textContent = `${plannedHours.toFixed(1)}h`;
-  els.metricDone.textContent = `${Math.round((done / total) * 100)}%`;
+  els.metricFire.textContent = currentFireStreak();
+}
+
+function renderStreak() {
+  const todayMinutes = focusMinutesFor();
+  const streak = currentFireStreak();
+  const targetProgress = Math.min(1, todayMinutes / fireTargetMinutes);
+  const remaining = Math.max(0, fireTargetMinutes - todayMinutes);
+  const best = bestFocusDayEntry();
+
+  els.streakCount.textContent = `${streak} day${streak === 1 ? "" : "s"}`;
+  els.todayFocusMinutes.textContent = todayMinutes;
+  els.dailyTargetStatus.textContent = remaining
+    ? `${remaining} minutes to fire`
+    : "Fire earned today";
+  els.streakSummary.textContent = remaining
+    ? `${Math.round(targetProgress * 100)}% of today's 2h dedicated work goal.`
+    : "Today is lit. Keep the chain alive tomorrow.";
+  els.flameBadge.classList.toggle("lit", todayMinutes >= fireTargetMinutes);
+  els.streakRing.style.setProperty("--progress", `${Math.round(targetProgress * 100)}%`);
+  els.bestFocusDay.textContent = best
+    ? `Best day: ${formatDate(best.key)} with ${best.minutes} focused minutes.`
+    : "Best focused day will appear after your first logged block.";
+
+  els.focusCalendar.innerHTML = "";
+  for (let offset = 34; offset >= 0; offset -= 1) {
+    const day = addDays(new Date(`${dateKey()}T12:00:00`), -offset);
+    const key = dateKey(day);
+    const minutes = focusMinutesFor(key);
+    const cell = document.createElement("button");
+    cell.type = "button";
+    cell.className = "focus-day";
+    cell.dataset.level = String(Math.min(4, Math.floor(minutes / 30)));
+    cell.title = `${formatDate(key)}: ${minutes} focused minutes`;
+    cell.innerHTML = `<span>${day.getDate()}</span>${minutes >= fireTargetMinutes ? "<strong>F</strong>" : ""}`;
+    els.focusCalendar.append(cell);
+  }
+}
+
+function renderQuote() {
+  const dayNumber = Math.floor(new Date(`${dateKey()}T12:00:00`).getTime() / 86400000);
+  const quote = dailyQuotes[dayNumber % dailyQuotes.length];
+  els.dailyQuote.textContent = quote.text;
+  els.quoteAuthor.textContent = quote.author;
+}
+
+function renderMailFollowups() {
+  const items = state.mailFollowups || [];
+  if (!items.length) {
+    els.mailFollowups.innerHTML = `<div class="empty-state">No mail follow-ups yet</div>`;
+    return;
+  }
+
+  els.mailFollowups.innerHTML = "";
+  for (const item of items) {
+    const card = document.createElement("article");
+    card.className = `mail-card ${item.status === "done" ? "done" : ""}`;
+    card.innerHTML = `
+      <div class="mail-card-main">
+        <button class="check-button" type="button" aria-label="Toggle ${escapeHtml(item.company)}"></button>
+        <div>
+          <h4>${escapeHtml(item.company)}</h4>
+          <p>${escapeHtml(item.role || "Job conversation")}</p>
+        </div>
+      </div>
+      <p>${escapeHtml(item.action)}</p>
+      <div class="mail-meta">
+        <span class="pill">${escapeHtml(item.priority || "medium")}</span>
+        <span class="pill">${escapeHtml(formatDate(item.due))}</span>
+        <span class="pill">${escapeHtml(item.source || "Gmail")}</span>
+      </div>
+      ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">Open thread</a>` : ""}
+    `;
+    card.querySelector(".check-button").addEventListener("click", () => {
+      item.status = item.status === "done" ? "open" : "done";
+      saveState();
+      render();
+    });
+    els.mailFollowups.append(card);
+  }
 }
 
 function renderReadiness() {
@@ -814,6 +995,9 @@ function render() {
   renderUpdates();
   renderInsights();
   renderReadiness();
+  renderStreak();
+  renderQuote();
+  renderMailFollowups();
   renderMetrics();
   renderFocus();
 }
@@ -930,6 +1114,11 @@ els.refreshUpdatesBtn.addEventListener("click", () => {
 els.openSourcesBtn.addEventListener("click", () => {
   window.open("https://www.studentenwerk-dresden.de/feeds/", "_blank", "noreferrer");
 });
+els.clearMailDoneBtn.addEventListener("click", () => {
+  state.mailFollowups = (state.mailFollowups || []).filter((item) => item.status !== "done");
+  saveState();
+  render();
+});
 els.seedGroceriesBtn.addEventListener("click", () => {
   ["Pasta", "Tomatoes", "Tofu", "Coffee", "Dish soap"].forEach((name) => addGrocery(name, guessGroceryCategory(name)));
 });
@@ -967,6 +1156,7 @@ els.sortMode.addEventListener("change", renderTasks);
 
 els.startFocusBtn.addEventListener("click", () => {
   if (focusTimer) return;
+  focusSessionStarted = true;
   els.focusTitle.textContent = `In focus: ${activeStudyMode().name}`;
   focusTimer = setInterval(() => {
     focusRemaining = Math.max(0, focusRemaining - 1);
@@ -974,6 +1164,8 @@ els.startFocusBtn.addEventListener("click", () => {
     if (focusRemaining === 0) {
       clearInterval(focusTimer);
       focusTimer = null;
+      logFocusMinutes(focusTotal / 60, "timer-complete");
+      focusSessionStarted = false;
       els.focusTitle.textContent = "Complete";
     }
   }, 1000);
@@ -986,13 +1178,21 @@ els.pauseFocusBtn.addEventListener("click", () => {
 });
 
 els.finishFocusBtn.addEventListener("click", () => {
+  const elapsed = Math.round((focusTotal - focusRemaining) / 60);
   clearInterval(focusTimer);
   focusTimer = null;
+  if (focusSessionStarted && elapsed > 0) {
+    logFocusMinutes(elapsed, "timer-finish");
+  }
+  focusSessionStarted = false;
   focusRemaining = Number(state.settings.focusMinutes) * 60;
   focusTotal = focusRemaining;
   els.focusTitle.textContent = "Ready";
   renderFocus();
 });
+
+els.logThirtyBtn.addEventListener("click", () => logFocusMinutes(30, "quick-log"));
+els.logTwoHoursBtn.addEventListener("click", () => logFocusMinutes(fireTargetMinutes, "fire-log"));
 
 els.exportBtn.addEventListener("click", () => {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
@@ -1009,7 +1209,13 @@ els.importFile.addEventListener("change", async () => {
   const file = els.importFile.files[0];
   if (!file) return;
   const imported = JSON.parse(await file.text());
-  state = { ...state, ...imported, settings: { ...state.settings, ...imported.settings } };
+  state = {
+    ...state,
+    ...imported,
+    settings: { ...state.settings, ...imported.settings },
+    focusLog: { ...state.focusLog, ...imported.focusLog },
+    mailFollowups: imported.mailFollowups || state.mailFollowups
+  };
   saveState();
   render();
 });

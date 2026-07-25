@@ -22,6 +22,10 @@
             <span aria-hidden="true">T</span>
             <span>Today</span>
           </button>
+          <button class="nav-item" type="button" data-view="streak" title="Streak">
+            <span aria-hidden="true">🔥</span>
+            <span>Streak</span>
+          </button>
           <button class="nav-item" type="button" data-view="study" title="Study">
             <span aria-hidden="true">S</span>
             <span>Study</span>
@@ -46,16 +50,16 @@
 
         <div class="side-metrics" aria-label="Planner metrics">
           <div>
-            <strong id="metricOpen">0</strong>
-            <span>Open</span>
+            <strong id="metricFire">0</strong>
+            <span>Fire</span>
           </div>
           <div>
             <strong id="metricPlanned">0h</strong>
             <span>Planned</span>
           </div>
           <div>
-            <strong id="metricDone">0%</strong>
-            <span>Done</span>
+            <strong id="metricOpen">0</strong>
+            <span>Open</span>
           </div>
         </div>
 
@@ -106,6 +110,14 @@
         </section>
 
         <section class="daily-brief" aria-label="Daily brief">
+          <article class="brief-card streak-brief">
+            <div>
+              <p class="eyebrow">Fire Streak</p>
+              <h3 id="streakCount">0 days</h3>
+              <p id="streakSummary">Log 2h of dedicated work to light today.</p>
+            </div>
+            <div class="flame-badge" id="flameBadge" aria-hidden="true"><span></span></div>
+          </article>
           <article class="brief-card weather-card">
             <div>
               <p class="eyebrow">Dresden Weather</p>
@@ -127,6 +139,28 @@
         </section>
 
         <section class="content-grid">
+          <section class="panel streak-panel" data-panel="streak">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Momentum</p>
+                <h3>Focus Calendar</h3>
+              </div>
+              <button id="logTwoHoursBtn" class="text-button fire-action" type="button">Log 2h</button>
+            </div>
+            <div class="streak-stage">
+              <div class="streak-ring" id="streakRing">
+                <span id="todayFocusMinutes">0</span>
+                <small>min today</small>
+              </div>
+              <div class="streak-copy">
+                <p class="eyebrow">Daily target</p>
+                <h4 id="dailyTargetStatus">120 minutes to fire</h4>
+                <p id="bestFocusDay">Best focused day will appear here.</p>
+              </div>
+            </div>
+            <div id="focusCalendar" class="focus-calendar" aria-label="Focus calendar"></div>
+          </section>
+
           <section class="panel today-view" data-panel="today">
             <div class="section-head">
               <div>
@@ -248,7 +282,30 @@
                 <button id="startFocusBtn" class="primary-button" type="button">Start</button>
                 <button id="pauseFocusBtn" class="text-button" type="button">Pause</button>
                 <button id="finishFocusBtn" class="text-button" type="button">Finish</button>
+                <button id="logThirtyBtn" class="text-button" type="button">+30m</button>
               </div>
+            </section>
+
+            <section class="panel quote-panel">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">Quote</p>
+                  <h3>Daily Edge</h3>
+                </div>
+              </div>
+              <blockquote id="dailyQuote"></blockquote>
+              <p id="quoteAuthor" class="quote-author"></p>
+            </section>
+
+            <section class="panel mail-panel">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">Gmail</p>
+                  <h3>Job Follow-ups</h3>
+                </div>
+                <button id="clearMailDoneBtn" class="text-button" type="button">Clear Done</button>
+              </div>
+              <div id="mailFollowups" class="mail-list" aria-live="polite"></div>
             </section>
           </aside>
 

@@ -10,6 +10,10 @@ A local-first intelligent planner for real-life tasks. It turns a messy backlog 
 - Voice capture through the browser Speech Recognition API when supported
 - Study modes for deep work, exam sprinting, active recall, reading, and flashcards
 - Focus timer with canvas progress visualization tied to the active study mode
+- Fire streak system: log 2 hours of dedicated work/study to earn a daily streak
+- Focus calendar showing recent study intensity and best focused days
+- Daily quote panel for motivation
+- Job follow-up panel for Gmail-derived application to-dos via private local import
 - Dresden weather brief powered by Open-Meteo
 - Practical grocery checklist with category grouping and weather-aware suggestions
 - Dresden update cards from RSS sources where browser access is available
@@ -27,6 +31,10 @@ Most planners store tasks. This project starts acting on them. It is designed as
 - Student life and mensa updates: Studentenwerk Dresden RSS feeds
 
 The app uses browser-friendly RSS bridges for static hosting and falls back to direct source cards if a feed is unavailable. Each card links back to the original provider.
+
+## Privacy note
+
+The public GitHub Pages app does not contain private email data. Gmail follow-ups can be imported from a local JSON file into browser storage, and private import files are ignored by Git.
 
 ## Run locally
 
