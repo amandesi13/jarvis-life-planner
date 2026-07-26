@@ -39,7 +39,7 @@
         <div class="side-metrics" aria-label="Planner metrics">
           <div>
             <strong id="metricFire">0</strong>
-            <span>Fire</span>
+            <span>Streak</span>
           </div>
           <div>
             <strong id="metricPlanned">0h</strong>
@@ -49,6 +49,22 @@
             <strong id="metricOpen">0</strong>
             <span>Open</span>
           </div>
+        </div>
+
+        <div class="utility-panel" aria-label="Data controls">
+          <button id="importBtn" class="utility-button" type="button" title="Import data" aria-label="Import data">
+            <span aria-hidden="true">In</span>
+            <strong>Import</strong>
+          </button>
+          <button id="exportBtn" class="utility-button" type="button" title="Export data" aria-label="Export data">
+            <span aria-hidden="true">Out</span>
+            <strong>Export</strong>
+          </button>
+          <button id="resetBtn" class="utility-button danger" type="button" title="Reset demo data" aria-label="Reset demo data">
+            <span aria-hidden="true">Re</span>
+            <strong>Reset</strong>
+          </button>
+          <input id="importFile" type="file" accept="application/json" hidden />
         </div>
 
         <div class="settings-panel">
@@ -78,12 +94,6 @@
             <blockquote id="dailyQuote"></blockquote>
             <p id="quoteAuthor" class="quote-author"></p>
           </article>
-          <div class="topbar-actions">
-            <button id="importBtn" class="icon-button" type="button" title="Import data" aria-label="Import data">I</button>
-            <button id="exportBtn" class="icon-button" type="button" title="Export data" aria-label="Export data">E</button>
-            <button id="resetBtn" class="icon-button danger" type="button" title="Reset demo data" aria-label="Reset demo data">R</button>
-            <input id="importFile" type="file" accept="application/json" hidden />
-          </div>
         </header>
 
         <section class="command-strip" aria-label="Assistant command">
@@ -125,6 +135,7 @@
                   <p class="eyebrow">Dresden</p>
                   <h4 id="weatherTemp">Loading</h4>
                   <span id="weatherSummary">Checking weather.</span>
+                  <em id="weatherAdvice">Preparing practical suggestion.</em>
                 </div>
                 <strong id="weatherIcon" aria-hidden="true">--</strong>
               </article>
@@ -202,6 +213,20 @@
               <textarea id="studyGoalInput" rows="3" placeholder="What should be mastered today?"></textarea>
             </label>
 
+            <section class="subject-planner" aria-label="Semester subject planner">
+              <div class="lane-subhead">
+                <h4>Semester Subjects</h4>
+                <span id="subjectSummary">0 planned</span>
+              </div>
+              <form id="subjectForm" class="subject-form">
+                <input id="subjectName" type="text" placeholder="Subject name" required />
+                <input id="subjectCoverage" type="text" placeholder="What to cover" required />
+                <input id="subjectMinutes" type="number" min="15" max="360" step="15" value="60" aria-label="Planned minutes" />
+                <button class="primary-button" type="submit">Add</button>
+              </form>
+              <div id="subjectList" class="subject-list" aria-live="polite"></div>
+            </section>
+
             <div class="streak-stage">
               <div class="streak-ring" id="streakRing">
                 <span id="todayFocusMinutes">0</span>
@@ -232,6 +257,10 @@
               <div class="lane-subhead">
                 <h4 id="focusTitle">Ready</h4>
               </div>
+              <label class="active-subject-field" for="activeSubjectSelect">
+                Active subject
+                <select id="activeSubjectSelect"></select>
+              </label>
               <canvas id="focusCanvas" width="320" height="160" aria-label="Focus progress"></canvas>
               <div class="focus-timer" id="focusTime">45:00</div>
               <div class="focus-actions">
@@ -249,18 +278,28 @@
                 <p class="eyebrow">Column 3</p>
                 <h3>Life Goals</h3>
               </div>
-              <button id="seedLifeBtn" class="text-button" type="button">Essentials</button>
+              <button id="seedLifeBtn" class="text-button" type="button">Add essentials</button>
             </div>
 
             <div class="life-tabs" role="group" aria-label="Life tabs">
-              <button class="life-tab active" type="button" data-life-tab="jobs">Jobs</button>
+              <button class="life-tab active" type="button" data-life-tab="life">Life</button>
               <button class="life-tab" type="button" data-life-tab="grocery">Grocery</button>
-              <button class="life-tab" type="button" data-life-tab="life">Life</button>
             </div>
 
-            <section class="life-tab-panel active" data-life-panel="jobs">
-              <div id="mailFollowups" class="mail-list" aria-live="polite"></div>
-              <button id="clearMailDoneBtn" class="text-button full-width" type="button">Clear Done</button>
+            <section class="life-tab-panel active" data-life-panel="life">
+              <form id="lifeForm" class="life-form">
+                <input id="lifeTitle" type="text" placeholder="Add a life goal or errand" required />
+                <input id="lifeDue" type="date" aria-label="Life goal due date" />
+                <button class="primary-button" type="submit">Add</button>
+              </form>
+              <div id="lifeList" class="life-list" aria-live="polite"></div>
+              <div class="life-actions">
+                <button class="life-action" type="button" data-life-task="Buy flight tickets home">Flight tickets home</button>
+                <button class="life-action" type="button" data-life-task="Renew Deutschlandticket">Deutschlandticket</button>
+                <button class="life-action" type="button" data-life-task="Book haircut">Book haircut</button>
+                <button class="life-action" type="button" data-life-task="Clean desk and reset room">Room reset</button>
+              </div>
+              <div id="insights" class="insights"></div>
             </section>
 
             <section class="life-tab-panel" data-life-panel="grocery">
@@ -276,16 +315,6 @@
               </form>
               <div id="grocerySuggestions" class="suggestion-strip"></div>
               <div id="groceryList" class="grocery-list six-slot-list" aria-live="polite"></div>
-            </section>
-
-            <section class="life-tab-panel" data-life-panel="life">
-              <div class="life-actions">
-                <button class="life-action" type="button" data-life-task="Buy flight tickets home">Buy flight tickets home</button>
-                <button class="life-action" type="button" data-life-task="Pay rent and check bank">Pay rent</button>
-                <button class="life-action" type="button" data-life-task="Laundry and room reset">Laundry reset</button>
-                <button class="life-action" type="button" data-life-task="Call family">Call family</button>
-              </div>
-              <div id="insights" class="insights"></div>
             </section>
           </section>
         </section>

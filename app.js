@@ -1,5 +1,5 @@
-const storageKey = "jarvis-life-planner:v3";
-const previousStorageKeys = ["jarvis-life-planner:v2", "jarvis-life-planner:v1"];
+const storageKey = "jarvis-life-planner:v4";
+const previousStorageKeys = ["jarvis-life-planner:v3", "jarvis-life-planner:v2", "jarvis-life-planner:v1"];
 const fireTargetMinutes = 120;
 
 const dresden = {
@@ -119,23 +119,61 @@ const seedTasks = [
 ];
 
 const seedGroceries = [
-  { id: crypto.randomUUID(), name: "Oats", category: "Pantry", checked: false },
+  { id: crypto.randomUUID(), name: "Coffee", category: "Pantry", checked: false },
   { id: crypto.randomUUID(), name: "Eggs", category: "Protein", checked: false },
-  { id: crypto.randomUUID(), name: "Apples", category: "Produce", checked: false },
-  { id: crypto.randomUUID(), name: "Milk", category: "Dairy", checked: false }
+  { id: crypto.randomUUID(), name: "Pasta", category: "Pantry", checked: false },
+  { id: crypto.randomUUID(), name: "Laundry detergent", category: "Home", checked: false }
 ];
 
-const seedMailFollowups = [
+const seedSubjects = [
   {
     id: crypto.randomUUID(),
-    company: "Import Gmail follow-ups",
-    role: "Job conversations",
-    action: "Use the private JSON import to load current job follow-ups from Gmail.",
-    due: todayOffset(0),
-    priority: "medium",
+    name: "Subject 1",
+    coverage: "Add chapters, labs, or lecture topics",
+    minutesPlanned: 60,
+    minutesDone: 0,
+    status: "open"
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Subject 2",
+    coverage: "Add what must be revised this week",
+    minutesPlanned: 60,
+    minutesDone: 0,
+    status: "open"
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Subject 3",
+    coverage: "Add problem sets or reading targets",
+    minutesPlanned: 60,
+    minutesDone: 0,
+    status: "open"
+  },
+  {
+    id: crypto.randomUUID(),
+    name: "Subject 4",
+    coverage: "Add exam prep or assignment work",
+    minutesPlanned: 60,
+    minutesDone: 0,
+    status: "open"
+  }
+];
+
+const seedLifeItems = [
+  {
+    id: crypto.randomUUID(),
+    title: "Buy flight tickets home",
+    due: todayOffset(7),
     status: "open",
-    source: "Local import",
-    url: ""
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: crypto.randomUUID(),
+    title: "Renew Deutschlandticket",
+    due: todayOffset(3),
+    status: "open",
+    createdAt: new Date().toISOString()
   }
 ];
 
@@ -159,6 +197,8 @@ let focusTimer = null;
 let focusRemaining = Number(state.settings.focusMinutes) * 60;
 let focusTotal = focusRemaining;
 let focusSessionStarted = false;
+let editingSubjectId = null;
+let editingLifeId = null;
 
 const els = {
   greeting: document.querySelector("#greeting"),
@@ -200,11 +240,10 @@ const els = {
   resetBtn: document.querySelector("#resetBtn"),
   weatherTemp: document.querySelector("#weatherTemp"),
   weatherSummary: document.querySelector("#weatherSummary"),
+  weatherAdvice: document.querySelector("#weatherAdvice"),
   weatherIcon: document.querySelector("#weatherIcon"),
   studyReadiness: document.querySelector("#studyReadiness"),
   studyReadinessText: document.querySelector("#studyReadinessText"),
-  lifeQueue: document.querySelector("#lifeQueue"),
-  lifeQueueText: document.querySelector("#lifeQueueText"),
   studyModes: document.querySelector("#studyModes"),
   quickStudyBtn: document.querySelector("#quickStudyBtn"),
   activeStudyMode: document.querySelector("#activeStudyMode"),
@@ -212,12 +251,23 @@ const els = {
   studyBlockMinutes: document.querySelector("#studyBlockMinutes"),
   studyBreakMinutes: document.querySelector("#studyBreakMinutes"),
   studyGoalInput: document.querySelector("#studyGoalInput"),
+  subjectForm: document.querySelector("#subjectForm"),
+  subjectName: document.querySelector("#subjectName"),
+  subjectCoverage: document.querySelector("#subjectCoverage"),
+  subjectMinutes: document.querySelector("#subjectMinutes"),
+  subjectList: document.querySelector("#subjectList"),
+  subjectSummary: document.querySelector("#subjectSummary"),
+  activeSubjectSelect: document.querySelector("#activeSubjectSelect"),
   groceryForm: document.querySelector("#groceryForm"),
   groceryName: document.querySelector("#groceryName"),
   groceryCategory: document.querySelector("#groceryCategory"),
   grocerySuggestions: document.querySelector("#grocerySuggestions"),
   groceryList: document.querySelector("#groceryList"),
   seedLifeBtn: document.querySelector("#seedLifeBtn"),
+  lifeForm: document.querySelector("#lifeForm"),
+  lifeTitle: document.querySelector("#lifeTitle"),
+  lifeDue: document.querySelector("#lifeDue"),
+  lifeList: document.querySelector("#lifeList"),
   updatesList: document.querySelector("#updatesList"),
   openSourcesBtn: document.querySelector("#openSourcesBtn"),
   streakCount: document.querySelector("#streakCount"),
@@ -229,9 +279,7 @@ const els = {
   focusCalendar: document.querySelector("#focusCalendar"),
   streakRing: document.querySelector("#streakRing"),
   dailyQuote: document.querySelector("#dailyQuote"),
-  quoteAuthor: document.querySelector("#quoteAuthor"),
-  mailFollowups: document.querySelector("#mailFollowups"),
-  clearMailDoneBtn: document.querySelector("#clearMailDoneBtn")
+  quoteAuthor: document.querySelector("#quoteAuthor")
 };
 
 function todayOffset(days) {
@@ -244,9 +292,10 @@ function defaultState() {
   return {
     tasks: seedTasks.map((task) => ({ ...task, id: crypto.randomUUID() })),
     groceries: seedGroceries.map((item) => ({ ...item, id: crypto.randomUUID() })),
+    subjects: seedSubjects.map((item) => ({ ...item, id: crypto.randomUUID() })),
+    lifeItems: seedLifeItems.map((item) => ({ ...item, id: crypto.randomUUID() })),
     plan: [],
     focusLog: {},
-    mailFollowups: seedMailFollowups.map((item) => ({ ...item, id: crypto.randomUUID() })),
     updates: [],
     weather: null,
     settings: {
@@ -268,8 +317,9 @@ function loadState() {
       ...fallback,
       ...saved,
       groceries: saved.groceries || fallback.groceries,
+      subjects: saved.subjects || fallback.subjects,
+      lifeItems: saved.lifeItems || fallback.lifeItems,
       focusLog: saved.focusLog || fallback.focusLog,
-      mailFollowups: saved.mailFollowups || fallback.mailFollowups,
       updates: saved.updates || [],
       weather: saved.weather || null,
       settings: { ...fallback.settings, ...saved.settings }
@@ -317,10 +367,23 @@ function logFocusMinutes(minutes, source = "manual") {
     minutes: amount,
     source,
     mode: activeStudyMode().name,
+    subjectId: els.activeSubjectSelect?.value || "",
     loggedAt: new Date().toISOString()
   });
+  applyMinutesToActiveSubject(amount);
   saveState();
   render();
+}
+
+function applyMinutesToActiveSubject(minutes) {
+  const subjectId = els.activeSubjectSelect?.value;
+  if (!subjectId) return;
+  const subject = state.subjects.find((item) => item.id === subjectId);
+  if (!subject) return;
+  subject.minutesDone = Math.max(0, Number(subject.minutesDone || 0) + minutes);
+  if (subject.minutesDone >= Number(subject.minutesPlanned || 0)) {
+    subject.status = "done";
+  }
 }
 
 function currentFireStreak() {
@@ -496,6 +559,109 @@ function createStudyTask(modeId = state.settings.activeStudyMode) {
   });
 }
 
+function addSubject({ name, coverage, minutesPlanned }) {
+  const cleanName = name.trim();
+  const cleanCoverage = coverage.trim();
+  if (!cleanName || !cleanCoverage) return;
+  if (editingSubjectId) {
+    const subject = state.subjects.find((item) => item.id === editingSubjectId);
+    if (subject) {
+      subject.name = cleanName;
+      subject.coverage = cleanCoverage;
+      subject.minutesPlanned = Math.max(15, Number(minutesPlanned || 60));
+      subject.status = Number(subject.minutesDone || 0) >= subject.minutesPlanned ? "done" : "open";
+    }
+    editingSubjectId = null;
+    saveState();
+    render();
+    return;
+  }
+  state.subjects.unshift({
+    id: crypto.randomUUID(),
+    name: cleanName,
+    coverage: cleanCoverage,
+    minutesPlanned: Math.max(15, Number(minutesPlanned || 60)),
+    minutesDone: 0,
+    status: "open"
+  });
+  saveState();
+  render();
+}
+
+function renderSubjects() {
+  const subjects = state.subjects || [];
+  const selectedId = els.activeSubjectSelect.value;
+  const openSubjects = subjects.filter((item) => item.status !== "done");
+  const planned = subjects.reduce((sum, item) => sum + Number(item.minutesPlanned || 0), 0);
+  const done = subjects.reduce((sum, item) => sum + Number(item.minutesDone || 0), 0);
+
+  els.subjectSummary.textContent = `${Math.round(done)}/${Math.round(planned)} min`;
+  els.activeSubjectSelect.innerHTML = `<option value="">No subject selected</option>`;
+  for (const subject of openSubjects) {
+    const option = document.createElement("option");
+    option.value = subject.id;
+    option.textContent = subject.name;
+    els.activeSubjectSelect.append(option);
+  }
+  if (subjects.some((item) => item.id === selectedId && item.status !== "done")) {
+    els.activeSubjectSelect.value = selectedId;
+  }
+
+  els.subjectList.innerHTML = "";
+  if (!subjects.length) {
+    els.subjectList.innerHTML = `<div class="empty-state">Add your four semester subjects and the chapters to cover.</div>`;
+    return;
+  }
+
+  for (const subject of subjects) {
+    const progress = Math.min(100, Math.round((Number(subject.minutesDone || 0) / Math.max(1, Number(subject.minutesPlanned || 1))) * 100));
+    const card = document.createElement("article");
+    card.className = `subject-card ${subject.status === "done" ? "done" : ""}`;
+    card.innerHTML = `
+      <div class="subject-main">
+        <div>
+          <h4>${escapeHtml(subject.name)}</h4>
+          <p>${escapeHtml(subject.coverage)}</p>
+        </div>
+        <strong>${progress}%</strong>
+      </div>
+      <div class="subject-progress" aria-label="${escapeHtml(subject.name)} progress">
+        <span style="width: ${progress}%"></span>
+      </div>
+      <div class="subject-meta">
+        <span>${Math.round(Number(subject.minutesDone || 0))} min done</span>
+        <span>${Math.round(Number(subject.minutesPlanned || 0))} min planned</span>
+      </div>
+      <div class="subject-actions">
+        <button class="mini-button use-subject" type="button">Use timer</button>
+        <button class="mini-button edit-subject" type="button">Edit</button>
+        <button class="mini-button delete-subject" type="button">Delete</button>
+      </div>
+    `;
+    card.querySelector(".use-subject").addEventListener("click", () => {
+      els.activeSubjectSelect.value = subject.id;
+      state.settings.focusMinutes = Math.min(120, Math.max(15, Number(subject.minutesPlanned || activeStudyMode().minutes)));
+      focusRemaining = state.settings.focusMinutes * 60;
+      focusTotal = focusRemaining;
+      saveState();
+      render();
+    });
+    card.querySelector(".edit-subject").addEventListener("click", () => {
+      editingSubjectId = subject.id;
+      els.subjectName.value = subject.name;
+      els.subjectCoverage.value = subject.coverage;
+      els.subjectMinutes.value = subject.minutesPlanned;
+      els.subjectName.focus();
+    });
+    card.querySelector(".delete-subject").addEventListener("click", () => {
+      state.subjects = state.subjects.filter((item) => item.id !== subject.id);
+      saveState();
+      render();
+    });
+    els.subjectList.append(card);
+  }
+}
+
 function renderStudyModes() {
   const active = state.settings.activeStudyMode;
   const selected = studyModes.find((mode) => mode.id === active) || studyModes[0];
@@ -533,6 +699,71 @@ function addGrocery(name, category = "Pantry") {
   });
   saveState();
   render();
+}
+
+function addLifeItem(title, due = "") {
+  const clean = title.trim();
+  if (!clean) return;
+  if (editingLifeId) {
+    const item = state.lifeItems.find((lifeItem) => lifeItem.id === editingLifeId);
+    if (item) {
+      item.title = clean;
+      item.due = due;
+    }
+    editingLifeId = null;
+    saveState();
+    render();
+    return;
+  }
+  state.lifeItems.unshift({
+    id: crypto.randomUUID(),
+    title: clean,
+    due,
+    status: "open",
+    createdAt: new Date().toISOString()
+  });
+  saveState();
+  render();
+}
+
+function renderLifeItems() {
+  const items = state.lifeItems || [];
+  els.lifeList.innerHTML = "";
+  if (!items.length) {
+    els.lifeList.innerHTML = `<div class="empty-state">Add practical life admin here: tickets, calls, documents, appointments.</div>`;
+    return;
+  }
+
+  for (const item of items) {
+    const row = document.createElement("article");
+    row.className = `life-item ${item.status === "done" ? "done" : ""}`;
+    row.innerHTML = `
+      <button class="check-button" type="button" aria-label="Toggle ${escapeHtml(item.title)}"></button>
+      <div>
+        <h4>${escapeHtml(item.title)}</h4>
+        <p>${escapeHtml(formatDate(item.due))}</p>
+      </div>
+      <button class="mini-button edit-life" type="button">Edit</button>
+      <button class="mini-button delete-life" type="button">Delete</button>
+    `;
+    row.querySelector(".check-button").addEventListener("click", () => {
+      item.status = item.status === "done" ? "open" : "done";
+      saveState();
+      render();
+    });
+    row.querySelector(".edit-life").addEventListener("click", () => {
+      editingLifeId = item.id;
+      els.lifeTitle.value = item.title;
+      els.lifeDue.value = item.due || "";
+      els.lifeTitle.focus();
+    });
+    row.querySelector(".delete-life").addEventListener("click", () => {
+      state.lifeItems = state.lifeItems.filter((lifeItem) => lifeItem.id !== item.id);
+      saveState();
+      render();
+    });
+    els.lifeList.append(row);
+  }
 }
 
 function guessGroceryCategory(name) {
@@ -583,19 +814,13 @@ function renderGroceries() {
     button.addEventListener("click", () => addGrocery(button.dataset.name, guessGroceryCategory(button.dataset.name)));
   });
 
-  if (els.lifeQueue) {
-    els.lifeQueue.textContent = `${pending.length} item${pending.length === 1 ? "" : "s"}`;
-    els.lifeQueueText.textContent = pending.length
-      ? `${pending.slice(0, 3).map((item) => item.name).join(", ")}${pending.length > 3 ? "..." : ""}`
-      : "Grocery list is clear.";
-  }
 }
 
 function grocerySuggestions() {
-  const suggestions = ["Rice", "Spinach", "Bananas", "Yogurt"];
+  const suggestions = ["Coffee", "Pasta", "Toilet paper", "Dish soap", "Laundry detergent", "Vegetables"];
   const temp = weatherState?.current?.temperature_2m;
   const rain = weatherState?.daily?.precipitation_sum?.[0] || 0;
-  if (typeof temp === "number" && temp >= 25) suggestions.unshift("Mineral water", "Fruit");
+  if (typeof temp === "number" && temp >= 25) suggestions.unshift("Mineral water", "Iced coffee");
   if (typeof temp === "number" && temp <= 8) suggestions.unshift("Soup vegetables", "Tea");
   if (rain > 2) suggestions.unshift("Umbrella check");
   const existing = new Set(state.groceries.map((item) => item.name.toLowerCase()));
@@ -630,6 +855,7 @@ function renderWeather() {
   if (!weatherState?.current) {
     els.weatherTemp.textContent = "Offline";
     els.weatherSummary.textContent = "Weather will appear when the connection is available.";
+    els.weatherAdvice.textContent = "Keep the day plan flexible until weather loads.";
     els.weatherIcon.textContent = "--";
     return;
   }
@@ -643,6 +869,18 @@ function renderWeather() {
   els.weatherTemp.textContent = `${Math.round(current.temperature_2m)} C`;
   els.weatherIcon.textContent = weatherSymbol(code);
   els.weatherSummary.textContent = `${weatherLabel(code)}. Feels ${Math.round(current.apparent_temperature)} C, high ${high} C, low ${low} C, rain ${rain} mm.`;
+  els.weatherAdvice.textContent = weatherAdvice(current, daily);
+}
+
+function weatherAdvice(current, daily = {}) {
+  const temp = Number(current.apparent_temperature ?? current.temperature_2m);
+  const rain = Number(daily.precipitation_sum?.[0] || 0);
+  const wind = Number(current.wind_speed_10m || 0);
+  if (rain > 2) return "Rain likely: carry an umbrella and group outside errands.";
+  if (temp >= 25) return "Warm day: wear lighter clothes and keep water nearby.";
+  if (temp <= 8) return "Cold outside: take a jacket before leaving.";
+  if (wind >= 30) return "Windy: use a stronger layer for cycling or errands.";
+  return "Good conditions: schedule errands between study blocks.";
 }
 
 async function loadUpdates() {
@@ -897,51 +1135,16 @@ function renderQuote() {
   els.quoteAuthor.textContent = quote.author;
 }
 
-function renderMailFollowups() {
-  const items = state.mailFollowups || [];
-  if (!items.length) {
-    els.mailFollowups.innerHTML = `<div class="empty-state">No mail follow-ups yet</div>`;
-    return;
-  }
-
-  els.mailFollowups.innerHTML = "";
-  for (const item of items) {
-    const card = document.createElement("article");
-    card.className = `mail-card ${item.status === "done" ? "done" : ""}`;
-    card.innerHTML = `
-      <div class="mail-card-main">
-        <button class="check-button" type="button" aria-label="Toggle ${escapeHtml(item.company)}"></button>
-        <div>
-          <h4>${escapeHtml(item.company)}</h4>
-          <p>${escapeHtml(item.role || "Job conversation")}</p>
-        </div>
-      </div>
-      <p>${escapeHtml(item.action)}</p>
-      <div class="mail-meta">
-        <span class="pill">${escapeHtml(item.priority || "medium")}</span>
-        <span class="pill">${escapeHtml(formatDate(item.due))}</span>
-        <span class="pill">${escapeHtml(item.source || "Gmail")}</span>
-      </div>
-      ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">Open thread</a>` : ""}
-    `;
-    card.querySelector(".check-button").addEventListener("click", () => {
-      item.status = item.status === "done" ? "open" : "done";
-      saveState();
-      render();
-    });
-    els.mailFollowups.append(card);
-  }
-}
-
 function renderReadiness() {
   const studyOpen = state.tasks.filter((task) => task.area === "Study" && task.status !== "done");
+  const subjectOpen = (state.subjects || []).filter((item) => item.status !== "done");
   const deepHours = studyOpen.filter((task) => task.energy === "deep").reduce((sum, task) => sum + Number(task.effort), 0);
   const mode = activeStudyMode();
-  const label = studyOpen.length ? `${mode.name} ready` : "Add study target";
+  const label = subjectOpen.length ? `${subjectOpen.length} subject${subjectOpen.length === 1 ? "" : "s"} queued` : "Add study target";
   els.studyReadiness.textContent = label;
-  els.studyReadinessText.textContent = studyOpen.length
-    ? `${studyOpen.length} study task${studyOpen.length === 1 ? "" : "s"}, ${deepHours.toFixed(1)}h deep work.`
-    : "Use Quick Study to create a focused block.";
+  els.studyReadinessText.textContent = subjectOpen.length
+    ? `${mode.name} is active. ${studyOpen.length} study task${studyOpen.length === 1 ? "" : "s"}, ${deepHours.toFixed(1)}h task load.`
+    : "Add your semester subjects, then choose one for the timer.";
 }
 
 function renderFocus() {
@@ -959,24 +1162,24 @@ function drawFocus() {
   const progress = focusTotal ? 1 - focusRemaining / focusTotal : 0;
 
   ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = "#152c2e";
+  ctx.fillStyle = "#090a0d";
   ctx.fillRect(0, 0, width, height);
 
   for (let i = 0; i < 42; i += 1) {
     const x = (i * 47 + Date.now() / 90) % width;
     const y = 24 + Math.sin(i + Date.now() / 700) * 24 + (i % 5) * 22;
-    ctx.fillStyle = i % 2 ? "rgba(212,155,42,0.35)" : "rgba(217,93,57,0.28)";
+    ctx.fillStyle = i % 2 ? "rgba(239,35,60,0.42)" : "rgba(255,255,255,0.18)";
     ctx.fillRect(x, y, 3, 3);
   }
 
-  ctx.strokeStyle = "#d49b2a";
+  ctx.strokeStyle = "#ef233c";
   ctx.lineWidth = 12;
   ctx.lineCap = "round";
   ctx.beginPath();
   ctx.arc(width / 2, height / 2, 48, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
   ctx.stroke();
 
-  ctx.fillStyle = "#f8f2e7";
+  ctx.fillStyle = "#ffffff";
   ctx.font = "800 26px system-ui";
   ctx.textAlign = "center";
   ctx.fillText(`${Math.round(progress * 100)}%`, width / 2, height / 2 + 9);
@@ -991,15 +1194,16 @@ function render() {
   els.focusMinutes.value = state.settings.focusMinutes;
   els.studyGoalInput.value = state.settings.studyGoal || "";
   renderStudyModes();
+  renderSubjects();
   renderTasks();
   renderTimeline();
   renderGroceries();
+  renderLifeItems();
   renderUpdates();
   renderInsights();
   renderReadiness();
   renderStreak();
   renderQuote();
-  renderMailFollowups();
   renderMetrics();
   renderFocus();
 }
@@ -1013,6 +1217,11 @@ function getGreeting() {
 
 function activeStudyMode() {
   return studyModes.find((mode) => mode.id === state.settings.activeStudyMode) || studyModes[0];
+}
+
+function activeSubject() {
+  const id = els.activeSubjectSelect?.value;
+  return (state.subjects || []).find((item) => item.id === id) || null;
 }
 
 function weatherLabel(code) {
@@ -1092,6 +1301,23 @@ els.groceryForm.addEventListener("submit", (event) => {
   els.groceryForm.reset();
 });
 
+els.subjectForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  addSubject({
+    name: els.subjectName.value,
+    coverage: els.subjectCoverage.value,
+    minutesPlanned: els.subjectMinutes.value
+  });
+  els.subjectForm.reset();
+  els.subjectMinutes.value = 60;
+});
+
+els.lifeForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  addLifeItem(els.lifeTitle.value, els.lifeDue.value);
+  els.lifeForm.reset();
+});
+
 els.commandBtn.addEventListener("click", () => {
   const parsed = parseCommand(els.assistantCommand.value);
   if (parsed) addTask(parsed);
@@ -1113,20 +1339,20 @@ els.studyGoalInput.addEventListener("input", () => {
   state.settings.studyGoal = els.studyGoalInput.value;
   saveState();
 });
-els.clearMailDoneBtn.addEventListener("click", () => {
-  state.mailFollowups = (state.mailFollowups || []).filter((item) => item.status !== "done");
+els.seedLifeBtn.addEventListener("click", () => {
+  ["Buy flight tickets home", "Renew Deutschlandticket", "Book haircut", "Clean desk and reset room"].forEach((title) => {
+    if (!state.lifeItems.some((item) => item.title.toLowerCase() === title.toLowerCase())) {
+      state.lifeItems.push({
+        id: crypto.randomUUID(),
+        title,
+        due: todayOffset(3),
+        status: "open",
+        createdAt: new Date().toISOString()
+      });
+    }
+  });
   saveState();
   render();
-});
-els.seedLifeBtn.addEventListener("click", () => {
-  ["Buy flight tickets home", "Renew Deutschlandticket", "Pay rent", "Laundry reset"].forEach((title) => addTask({
-    title,
-    area: "Life Admin",
-    due: todayOffset(1),
-    energy: "light",
-    impact: 4,
-    effort: 0.5
-  }));
 });
 
 document.querySelectorAll(".life-tab").forEach((button) => {
@@ -1139,14 +1365,7 @@ document.querySelectorAll(".life-tab").forEach((button) => {
 });
 
 document.querySelectorAll(".life-action").forEach((button) => {
-  button.addEventListener("click", () => addTask({
-    title: button.dataset.lifeTask,
-    area: "Life Admin",
-    due: todayOffset(1),
-    energy: "light",
-    impact: 4,
-    effort: 0.5
-  }));
+  button.addEventListener("click", () => addLifeItem(button.dataset.lifeTask, todayOffset(3)));
 });
 
 document.querySelectorAll(".segment").forEach((button) => {
@@ -1183,7 +1402,8 @@ els.sortMode.addEventListener("change", renderTasks);
 els.startFocusBtn.addEventListener("click", () => {
   if (focusTimer) return;
   focusSessionStarted = true;
-  els.focusTitle.textContent = `In focus: ${activeStudyMode().name}`;
+  const subject = activeSubject();
+  els.focusTitle.textContent = subject ? `In focus: ${subject.name}` : `In focus: ${activeStudyMode().name}`;
   focusTimer = setInterval(() => {
     focusRemaining = Math.max(0, focusRemaining - 1);
     renderFocus();
@@ -1239,8 +1459,9 @@ els.importFile.addEventListener("change", async () => {
     ...state,
     ...imported,
     settings: { ...state.settings, ...imported.settings },
-    focusLog: { ...state.focusLog, ...imported.focusLog },
-    mailFollowups: imported.mailFollowups || state.mailFollowups
+    subjects: imported.subjects || state.subjects,
+    lifeItems: imported.lifeItems || state.lifeItems,
+    focusLog: { ...state.focusLog, ...imported.focusLog }
   };
   saveState();
   render();
