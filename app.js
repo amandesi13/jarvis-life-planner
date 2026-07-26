@@ -279,8 +279,7 @@ const els = {
   bestFocusDay: document.querySelector("#bestFocusDay"),
   focusCalendar: document.querySelector("#focusCalendar"),
   streakRing: document.querySelector("#streakRing"),
-  dailyQuote: document.querySelector("#dailyQuote"),
-  quoteAuthor: document.querySelector("#quoteAuthor")
+  dailyQuote: document.querySelector("#dailyQuote")
 };
 
 function todayOffset(days) {
@@ -1132,7 +1131,6 @@ function renderStreak() {
 function renderQuote() {
   const quote = dailyQuotes[0];
   els.dailyQuote.textContent = quote.text;
-  els.quoteAuthor.textContent = quote.author;
 }
 
 function renderReadiness() {
@@ -1168,7 +1166,7 @@ function drawFocus() {
   for (let i = 0; i < 42; i += 1) {
     const x = (i * 47 + Date.now() / 90) % width;
     const y = 24 + Math.sin(i + Date.now() / 700) * 24 + (i % 5) * 22;
-    ctx.fillStyle = i % 2 ? "rgba(169,175,194,0.28)" : "rgba(140,125,255,0.2)";
+    ctx.fillStyle = i % 2 ? "rgba(169,175,194,0.25)" : "rgba(118,122,132,0.18)";
     ctx.fillRect(x, y, 3, 3);
   }
 
