@@ -178,6 +178,7 @@ const seedLifeItems = [
 ];
 
 const dailyQuotes = [
+  { text: "Tera Kiya Mittha Laage", author: "Daily Edge" },
   { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
   { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
   { text: "Do the hard jobs first. The easy jobs will take care of themselves.", author: "Dale Carnegie" },
@@ -1129,8 +1130,7 @@ function renderStreak() {
 }
 
 function renderQuote() {
-  const dayNumber = Math.floor(new Date(`${dateKey()}T12:00:00`).getTime() / 86400000);
-  const quote = dailyQuotes[dayNumber % dailyQuotes.length];
+  const quote = dailyQuotes[0];
   els.dailyQuote.textContent = quote.text;
   els.quoteAuthor.textContent = quote.author;
 }
@@ -1168,11 +1168,11 @@ function drawFocus() {
   for (let i = 0; i < 42; i += 1) {
     const x = (i * 47 + Date.now() / 90) % width;
     const y = 24 + Math.sin(i + Date.now() / 700) * 24 + (i % 5) * 22;
-    ctx.fillStyle = i % 2 ? "rgba(125,248,255,0.32)" : "rgba(140,125,255,0.22)";
+    ctx.fillStyle = i % 2 ? "rgba(169,175,194,0.28)" : "rgba(140,125,255,0.2)";
     ctx.fillRect(x, y, 3, 3);
   }
 
-  ctx.strokeStyle = "#7df8ff";
+  ctx.strokeStyle = "#a9afc2";
   ctx.lineWidth = 12;
   ctx.lineCap = "round";
   ctx.beginPath();
