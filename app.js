@@ -16,7 +16,9 @@ const studyModes = [
     breakMinutes: 10,
     energy: "deep",
     impact: 5,
-    prompt: "One demanding concept, no context switching.",
+    prompt: "Master one hard topic and leave proof.",
+    rule: "Phone away. One subject. Notes closed for the final 10 minutes.",
+    output: "Write a 5-line summary, 3 weak points, and 1 next question.",
     task: "Deep study block"
   },
   {
@@ -26,7 +28,9 @@ const studyModes = [
     breakMinutes: 7,
     energy: "deep",
     impact: 5,
-    prompt: "Past-paper style practice with quick correction.",
+    prompt: "Practice under exam pressure.",
+    rule: "Attempt first, check later. Mark every mistake by reason.",
+    output: "Finish one problem set and list corrections to revise tomorrow.",
     task: "Exam sprint practice"
   },
   {
@@ -36,7 +40,9 @@ const studyModes = [
     breakMinutes: 5,
     energy: "medium",
     impact: 4,
-    prompt: "Recall, check, fix gaps, repeat.",
+    prompt: "Close gaps with active recall.",
+    rule: "Recall before reading. Check only after committing an answer.",
+    output: "Create or update flashcards for every missed point.",
     task: "Active recall review"
   },
   {
@@ -46,7 +52,9 @@ const studyModes = [
     breakMinutes: 5,
     energy: "light",
     impact: 3,
-    prompt: "Read with notes and extract three takeaways.",
+    prompt: "Read slowly, extract useful notes.",
+    rule: "No highlighting-only studying. Convert paragraphs into questions.",
+    output: "Capture 3 takeaways and 2 questions for the next session.",
     task: "Reading notes"
   },
   {
@@ -56,7 +64,9 @@ const studyModes = [
     breakMinutes: 4,
     energy: "light",
     impact: 3,
-    prompt: "Fast spaced repetition for memory maintenance.",
+    prompt: "Fast memory maintenance.",
+    rule: "Answer out loud before revealing. Repeat wrong cards once.",
+    output: "Tag every weak deck and schedule the next review.",
     task: "Flashcard review"
   }
 ];
@@ -249,6 +259,7 @@ const els = {
   quickStudyBtn: document.querySelector("#quickStudyBtn"),
   activeStudyMode: document.querySelector("#activeStudyMode"),
   activeStudyText: document.querySelector("#activeStudyText"),
+  focusProtocol: document.querySelector("#focusProtocol"),
   studyBlockMinutes: document.querySelector("#studyBlockMinutes"),
   studyBreakMinutes: document.querySelector("#studyBreakMinutes"),
   studyGoalInput: document.querySelector("#studyGoalInput"),
@@ -664,7 +675,6 @@ function renderSubjects() {
 
 function renderStudyModes() {
   const active = state.settings.activeStudyMode;
-  const selected = studyModes.find((mode) => mode.id === active) || studyModes[0];
   els.studyModes.innerHTML = "";
 
   for (const mode of studyModes) {
@@ -679,9 +689,51 @@ function renderStudyModes() {
     button.addEventListener("click", () => selectStudyMode(mode.id));
     els.studyModes.append(button);
   }
+}
 
-  els.activeStudyMode.textContent = selected.name;
-  els.activeStudyText.textContent = selected.prompt;
+function nextStudyTarget() {
+  const selectedSubject = activeSubject();
+  const openSubject = (state.subjects || []).find((item) => item.status !== "done");
+  const goal = (state.settings.studyGoal || "").trim();
+
+  if (selectedSubject) {
+    return {
+      title: selectedSubject.name,
+      detail: selectedSubject.coverage
+    };
+  }
+
+  if (goal) {
+    return {
+      title: "Today's study goal",
+      detail: goal
+    };
+  }
+
+  if (openSubject) {
+    return {
+      title: openSubject.name,
+      detail: openSubject.coverage
+    };
+  }
+
+  return {
+    title: "Choose a subject",
+    detail: "Add a subject and what needs to be covered, then start the timer."
+  };
+}
+
+function renderStudyWorkbench() {
+  const selected = activeStudyMode();
+  const target = nextStudyTarget();
+
+  els.activeStudyMode.textContent = `${selected.name} for ${target.title}`;
+  els.activeStudyText.textContent = target.detail;
+  els.focusProtocol.innerHTML = `
+    <span><strong>Rule</strong>${escapeHtml(selected.rule)}</span>
+    <span><strong>Output</strong>${escapeHtml(selected.output)}</span>
+    <span><strong>Break</strong>${selected.breakMinutes} min: water, stretch, no phone loop.</span>
+  `;
   els.studyBlockMinutes.textContent = selected.minutes;
   els.studyBreakMinutes.textContent = selected.breakMinutes;
 }
@@ -1193,6 +1245,7 @@ function render() {
   els.studyGoalInput.value = state.settings.studyGoal || "";
   renderStudyModes();
   renderSubjects();
+  renderStudyWorkbench();
   renderTasks();
   renderTimeline();
   renderGroceries();
@@ -1336,7 +1389,9 @@ els.quickStudyBtn.addEventListener("click", () => createStudyTask());
 els.studyGoalInput.addEventListener("input", () => {
   state.settings.studyGoal = els.studyGoalInput.value;
   saveState();
+  renderStudyWorkbench();
 });
+els.activeSubjectSelect.addEventListener("change", () => renderStudyWorkbench());
 els.seedLifeBtn.addEventListener("click", () => {
   ["Buy flight tickets home", "Renew Deutschlandticket", "Book haircut", "Clean desk and reset room"].forEach((title) => {
     if (!state.lifeItems.some((item) => item.title.toLowerCase() === title.toLowerCase())) {
