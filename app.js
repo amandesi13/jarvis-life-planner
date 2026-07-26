@@ -1168,11 +1168,11 @@ function drawFocus() {
   for (let i = 0; i < 42; i += 1) {
     const x = (i * 47 + Date.now() / 90) % width;
     const y = 24 + Math.sin(i + Date.now() / 700) * 24 + (i % 5) * 22;
-    ctx.fillStyle = i % 2 ? "rgba(239,35,60,0.42)" : "rgba(255,255,255,0.18)";
+    ctx.fillStyle = i % 2 ? "rgba(125,248,255,0.32)" : "rgba(140,125,255,0.22)";
     ctx.fillRect(x, y, 3, 3);
   }
 
-  ctx.strokeStyle = "#ef233c";
+  ctx.strokeStyle = "#7df8ff";
   ctx.lineWidth = 12;
   ctx.lineCap = "round";
   ctx.beginPath();
