@@ -83,15 +83,6 @@ body::after {
   }
 }
 
-@keyframes soft-sheen {
-  from {
-    transform: translateX(-140%) skewX(-18deg);
-  }
-  to {
-    transform: translateX(220%) skewX(-18deg);
-  }
-}
-
 button,
 input,
 select,
@@ -317,8 +308,8 @@ button:disabled {
   background: linear-gradient(180deg, #ffffff 0%, #f1eee7 48%, #aaa895 100%);
   -webkit-background-clip: text;
   background-clip: text;
-  font-size: clamp(2rem, 4vw, 4.4rem);
-  line-height: 0.95;
+  font-size: clamp(1.8rem, 3.2vw, 3.55rem);
+  line-height: 1.02;
   letter-spacing: 0;
   text-shadow: 0 22px 60px rgba(217, 208, 189, 0.08);
 }
@@ -356,13 +347,13 @@ button:disabled {
 
 .quote-card::after {
   position: absolute;
-  right: -56px;
-  top: -64px;
-  width: 180px;
-  height: 180px;
-  border-radius: 999px;
+  inset: 0;
+  pointer-events: none;
   content: "";
-  background: radial-gradient(circle, rgba(169, 175, 194, 0.14), transparent 65%);
+  background:
+    radial-gradient(220px circle at var(--mx, 84%) var(--my, 20%), rgba(217, 208, 189, 0.13), transparent 58%),
+    radial-gradient(circle at 86% 18%, rgba(169, 175, 194, 0.12), transparent 34%);
+  opacity: 0.9;
 }
 
 .quote-card blockquote {
@@ -370,7 +361,7 @@ button:disabled {
   z-index: 1;
   margin: 0;
   color: var(--white);
-  font-size: 1.08rem;
+  font-size: 1.2rem;
   line-height: 1.35;
   font-weight: 900;
 }
@@ -406,15 +397,14 @@ button:disabled {
   inset: 0;
   pointer-events: none;
   content: "";
-  background: linear-gradient(110deg, transparent 0 38%, rgba(255, 255, 255, 0.05) 48%, transparent 58% 100%);
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(217, 208, 189, 0.12), transparent 58%);
   opacity: 0;
-  transform: translateX(-140%) skewX(-18deg);
+  transition: opacity 180ms ease;
 }
 
 .lane:hover::after,
 .command-strip:hover::after,
 .focus-module:hover::after {
-  animation: soft-sheen 1200ms ease-out;
   opacity: 1;
 }
 
@@ -742,6 +732,8 @@ input[type="range"] {
 .study-workbench,
 .streak-stage,
 .insight {
+  position: relative;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
   background:
@@ -763,6 +755,31 @@ input[type="range"] {
     radial-gradient(circle at 92% 8%, rgba(217, 208, 189, 0.085), transparent 30%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.082), rgba(143, 148, 160, 0.045)),
     rgba(255, 255, 255, 0.052);
+}
+
+.task-card::after,
+.subject-card::after,
+.life-item::after,
+.grocery-item::after,
+.study-mode::after,
+.mini-status::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  border-radius: inherit;
+  background: radial-gradient(180px circle at var(--mx, 50%) var(--my, 50%), rgba(217, 208, 189, 0.08), transparent 62%);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.task-card:hover::after,
+.subject-card:hover::after,
+.life-item:hover::after,
+.grocery-item:hover::after,
+.study-mode:hover::after,
+.mini-status:hover::after {
+  opacity: 1;
 }
 
 .task-card {
@@ -1255,7 +1272,7 @@ input[type="range"] {
   }
 
   .topbar h2 {
-    font-size: 2.25rem;
+    font-size: 2rem;
   }
 
   .study-stats {

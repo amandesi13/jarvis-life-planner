@@ -1278,6 +1278,19 @@ function escapeHtml(value) {
   });
 }
 
+function wireCursorGlow() {
+  const selector = ".lane, .command-strip, .focus-module, .quote-card, .task-card, .subject-card, .life-item, .grocery-item, .study-mode, .mini-status";
+  document.addEventListener("pointermove", (event) => {
+    const target = event.target.closest(selector);
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    target.style.setProperty("--mx", `${x.toFixed(2)}%`);
+    target.style.setProperty("--my", `${y.toFixed(2)}%`);
+  });
+}
+
 els.taskForm.addEventListener("submit", (event) => {
   event.preventDefault();
   addTask({
@@ -1490,5 +1503,6 @@ els.voiceBtn.addEventListener("click", () => {
 
 weatherState = state.weather?.data || null;
 setInterval(drawFocus, 1000 / 24);
+wireCursorGlow();
 render();
 loadWeather();
