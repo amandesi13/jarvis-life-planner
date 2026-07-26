@@ -1163,9 +1163,9 @@ function drawFocus() {
   ctx.fillStyle = "#090a0d";
   ctx.fillRect(0, 0, width, height);
 
-  for (let i = 0; i < 42; i += 1) {
-    const x = (i * 47 + Date.now() / 90) % width;
-    const y = 24 + Math.sin(i + Date.now() / 700) * 24 + (i % 5) * 22;
+  for (let i = 0; i < 34; i += 1) {
+    const x = (i * 47) % width;
+    const y = 24 + Math.sin(i) * 24 + (i % 5) * 22;
     ctx.fillStyle = i % 2 ? "rgba(169,175,194,0.25)" : "rgba(118,122,132,0.18)";
     ctx.fillRect(x, y, 3, 3);
   }
@@ -1275,19 +1275,6 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => {
     const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" };
     return map[char];
-  });
-}
-
-function wireCursorGlow() {
-  const selector = ".lane, .command-strip, .focus-module, .quote-card, .task-card, .subject-card, .life-item, .grocery-item, .study-mode, .mini-status";
-  document.addEventListener("pointermove", (event) => {
-    const target = event.target.closest(selector);
-    if (!target) return;
-    const rect = target.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 100;
-    const y = ((event.clientY - rect.top) / rect.height) * 100;
-    target.style.setProperty("--mx", `${x.toFixed(2)}%`);
-    target.style.setProperty("--my", `${y.toFixed(2)}%`);
   });
 }
 
@@ -1502,7 +1489,5 @@ els.voiceBtn.addEventListener("click", () => {
 });
 
 weatherState = state.weather?.data || null;
-setInterval(drawFocus, 1000 / 24);
-wireCursorGlow();
 render();
 loadWeather();

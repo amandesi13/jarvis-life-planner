@@ -60,7 +60,6 @@ body::before {
     linear-gradient(90deg, rgba(255, 255, 255, 0.024) 1px, transparent 1px);
   background-size: 72px 72px;
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.72), transparent 88%);
-  animation: drift-grid 18s linear infinite;
 }
 
 body::after {
@@ -72,15 +71,6 @@ body::after {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent 18%, rgba(0, 0, 0, 0.5));
   mix-blend-mode: screen;
   opacity: 0.56;
-}
-
-@keyframes drift-grid {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 72px 72px;
-  }
 }
 
 button,
@@ -308,8 +298,8 @@ button:disabled {
   background: linear-gradient(180deg, #ffffff 0%, #f1eee7 48%, #aaa895 100%);
   -webkit-background-clip: text;
   background-clip: text;
-  font-size: clamp(1.8rem, 3.2vw, 3.55rem);
-  line-height: 1.02;
+  font-size: clamp(1.25rem, 1.65vw, 2.05rem);
+  line-height: 1.12;
   letter-spacing: 0;
   text-shadow: 0 22px 60px rgba(217, 208, 189, 0.08);
 }
@@ -345,17 +335,6 @@ button:disabled {
   background: linear-gradient(90deg, transparent, rgba(217, 208, 189, 0.38), transparent);
 }
 
-.quote-card::after {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  content: "";
-  background:
-    radial-gradient(220px circle at var(--mx, 84%) var(--my, 20%), rgba(217, 208, 189, 0.13), transparent 58%),
-    radial-gradient(circle at 86% 18%, rgba(169, 175, 194, 0.12), transparent 34%);
-  opacity: 0.9;
-}
-
 .quote-card blockquote {
   position: relative;
   z-index: 1;
@@ -388,24 +367,6 @@ button:disabled {
     var(--panel);
   box-shadow: var(--shadow);
   backdrop-filter: blur(28px);
-}
-
-.lane::after,
-.command-strip::after,
-.focus-module::after {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  content: "";
-  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(217, 208, 189, 0.12), transparent 58%);
-  opacity: 0;
-  transition: opacity 180ms ease;
-}
-
-.lane:hover::after,
-.command-strip:hover::after,
-.focus-module:hover::after {
-  opacity: 1;
 }
 
 .command-strip {
@@ -755,31 +716,6 @@ input[type="range"] {
     radial-gradient(circle at 92% 8%, rgba(217, 208, 189, 0.085), transparent 30%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.082), rgba(143, 148, 160, 0.045)),
     rgba(255, 255, 255, 0.052);
-}
-
-.task-card::after,
-.subject-card::after,
-.life-item::after,
-.grocery-item::after,
-.study-mode::after,
-.mini-status::after {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  content: "";
-  border-radius: inherit;
-  background: radial-gradient(180px circle at var(--mx, 50%) var(--my, 50%), rgba(217, 208, 189, 0.08), transparent 62%);
-  opacity: 0;
-  transition: opacity 160ms ease;
-}
-
-.task-card:hover::after,
-.subject-card:hover::after,
-.life-item:hover::after,
-.grocery-item:hover::after,
-.study-mode:hover::after,
-.mini-status:hover::after {
-  opacity: 1;
 }
 
 .task-card {
@@ -1272,7 +1208,7 @@ input[type="range"] {
   }
 
   .topbar h2 {
-    font-size: 2rem;
+    font-size: 1.42rem;
   }
 
   .study-stats {
