@@ -8,15 +8,16 @@ A local-first intelligent planner for real-life tasks. It turns a messy backlog 
 - Daily auto-planning with configurable start and end times
 - Natural-language capture such as `Add study networks tomorrow 2h high impact`
 - Voice capture through the browser Speech Recognition API when supported
+- Three dedicated lanes: Plan Today, Study Studio, and Life Goals
 - Study modes for deep work, exam sprinting, active recall, reading, and flashcards
+- Personal study goal field for what needs to be mastered today
 - Focus timer with canvas progress visualization tied to the active study mode
 - Fire streak system: log 2 hours of dedicated work/study to earn a daily streak
 - Focus calendar showing recent study intensity and best focused days
-- Daily quote panel for motivation
+- Daily quote panel placed in the top-right focus area
 - Job follow-up panel for Gmail-derived application to-dos via private local import
 - Dresden weather brief powered by Open-Meteo
-- Practical grocery checklist with category grouping and weather-aware suggestions
-- Dresden update cards from RSS sources where browser access is available
+- Compact 6-slot grocery tab for manual shopping priorities
 - Local browser storage, plus JSON import and export
 - No backend and no account required
 
@@ -27,10 +28,6 @@ Most planners store tasks. This project starts acting on them. It is designed as
 ## Live data sources
 
 - Weather: Open-Meteo forecast API for Dresden coordinates
-- Dresden news: Dresdner Neueste Nachrichten RSS feed
-- Student life and mensa updates: Studentenwerk Dresden RSS feeds
-
-The app uses browser-friendly RSS bridges for static hosting and falls back to direct source cards if a feed is unavailable. Each card links back to the original provider.
 
 ## Privacy note
 

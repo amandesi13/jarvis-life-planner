@@ -167,7 +167,6 @@ const els = {
   commandBtn: document.querySelector("#commandBtn"),
   voiceBtn: document.querySelector("#voiceBtn"),
   planBtn: document.querySelector("#planBtn"),
-  refreshUpdatesBtn: document.querySelector("#refreshUpdatesBtn"),
   clearPlanBtn: document.querySelector("#clearPlanBtn"),
   taskForm: document.querySelector("#taskForm"),
   taskTitle: document.querySelector("#taskTitle"),
@@ -212,12 +211,13 @@ const els = {
   activeStudyText: document.querySelector("#activeStudyText"),
   studyBlockMinutes: document.querySelector("#studyBlockMinutes"),
   studyBreakMinutes: document.querySelector("#studyBreakMinutes"),
+  studyGoalInput: document.querySelector("#studyGoalInput"),
   groceryForm: document.querySelector("#groceryForm"),
   groceryName: document.querySelector("#groceryName"),
   groceryCategory: document.querySelector("#groceryCategory"),
   grocerySuggestions: document.querySelector("#grocerySuggestions"),
   groceryList: document.querySelector("#groceryList"),
-  seedGroceriesBtn: document.querySelector("#seedGroceriesBtn"),
+  seedLifeBtn: document.querySelector("#seedLifeBtn"),
   updatesList: document.querySelector("#updatesList"),
   openSourcesBtn: document.querySelector("#openSourcesBtn"),
   streakCount: document.querySelector("#streakCount"),
@@ -253,7 +253,8 @@ function defaultState() {
       dayStart: "09:00",
       dayEnd: "18:00",
       focusMinutes: 45,
-      activeStudyMode: "deep"
+      activeStudyMode: "deep",
+      studyGoal: ""
     }
   };
 }
@@ -522,6 +523,8 @@ function renderStudyModes() {
 function addGrocery(name, category = "Pantry") {
   const clean = name.trim();
   if (!clean) return;
+  const openSlots = state.groceries.filter((item) => !item.checked);
+  if (openSlots.length >= 6) return;
   state.groceries.unshift({
     id: crypto.randomUUID(),
     name: clean,
@@ -546,36 +549,30 @@ function renderGroceries() {
   const pending = state.groceries.filter((item) => !item.checked);
   els.groceryList.innerHTML = "";
 
-  if (!state.groceries.length) {
-    els.groceryList.innerHTML = `<div class="empty-state">No groceries yet</div>`;
-  } else {
-    const grouped = groupBy(state.groceries, "category");
-    for (const [category, items] of Object.entries(grouped)) {
-      const section = document.createElement("section");
-      section.className = "grocery-group";
-      section.innerHTML = `<h4>${escapeHtml(category)}</h4>`;
-      for (const item of items) {
-        const row = document.createElement("div");
-        row.className = `grocery-item ${item.checked ? "checked" : ""}`;
-        row.innerHTML = `
-          <button class="check-button" type="button" aria-label="Toggle ${escapeHtml(item.name)}"></button>
-          <span>${escapeHtml(item.name)}</span>
-          <button class="mini-button" type="button">Delete</button>
-        `;
-        row.querySelector(".check-button").addEventListener("click", () => {
-          item.checked = !item.checked;
-          saveState();
-          render();
-        });
-        row.querySelector(".mini-button").addEventListener("click", () => {
-          state.groceries = state.groceries.filter((grocery) => grocery.id !== item.id);
-          saveState();
-          render();
-        });
-        section.append(row);
-      }
-      els.groceryList.append(section);
+  for (let index = 0; index < 6; index += 1) {
+    const item = pending[index];
+    const row = document.createElement("div");
+    row.className = `grocery-item grocery-slot ${item ? "" : "empty-slot"}`;
+    if (item) {
+      row.innerHTML = `
+        <button class="check-button" type="button" aria-label="Done ${escapeHtml(item.name)}"></button>
+        <span>${escapeHtml(item.name)}</span>
+        <button class="mini-button" type="button">Delete</button>
+      `;
+      row.querySelector(".check-button").addEventListener("click", () => {
+        item.checked = true;
+        saveState();
+        render();
+      });
+      row.querySelector(".mini-button").addEventListener("click", () => {
+        state.groceries = state.groceries.filter((grocery) => grocery.id !== item.id);
+        saveState();
+        render();
+      });
+    } else {
+      row.innerHTML = `<span>Empty slot ${index + 1}</span>`;
     }
+    els.groceryList.append(row);
   }
 
   const suggestions = grocerySuggestions();
@@ -586,10 +583,12 @@ function renderGroceries() {
     button.addEventListener("click", () => addGrocery(button.dataset.name, guessGroceryCategory(button.dataset.name)));
   });
 
-  els.lifeQueue.textContent = `${pending.length} item${pending.length === 1 ? "" : "s"}`;
-  els.lifeQueueText.textContent = pending.length
-    ? `${pending.slice(0, 3).map((item) => item.name).join(", ")}${pending.length > 3 ? "..." : ""}`
-    : "Grocery list is clear.";
+  if (els.lifeQueue) {
+    els.lifeQueue.textContent = `${pending.length} item${pending.length === 1 ? "" : "s"}`;
+    els.lifeQueueText.textContent = pending.length
+      ? `${pending.slice(0, 3).map((item) => item.name).join(", ")}${pending.length > 3 ? "..." : ""}`
+      : "Grocery list is clear.";
+  }
 }
 
 function grocerySuggestions() {
@@ -647,6 +646,7 @@ function renderWeather() {
 }
 
 async function loadUpdates() {
+  if (!els.updatesList) return;
   els.updatesList.innerHTML = `<div class="empty-state">Refreshing Dresden updates</div>`;
   const feedResults = await Promise.all(updateSources.map((source) => fetchRss(source)));
   const results = feedResults.flat();
@@ -735,6 +735,7 @@ function fallbackUpdates() {
 }
 
 function renderUpdates() {
+  if (!els.updatesList) return;
   const updates = state.updates?.length ? state.updates : fallbackUpdates();
   els.updatesList.innerHTML = updates.map((item) => `
     <article class="update-item">
@@ -988,6 +989,7 @@ function render() {
   els.dayStart.value = state.settings.dayStart;
   els.dayEnd.value = state.settings.dayEnd;
   els.focusMinutes.value = state.settings.focusMinutes;
+  els.studyGoalInput.value = state.settings.studyGoal || "";
   renderStudyModes();
   renderTasks();
   renderTimeline();
@@ -1107,20 +1109,44 @@ els.clearPlanBtn.addEventListener("click", () => {
   render();
 });
 els.quickStudyBtn.addEventListener("click", () => createStudyTask());
-els.refreshUpdatesBtn.addEventListener("click", () => {
-  loadWeather();
-  loadUpdates();
-});
-els.openSourcesBtn.addEventListener("click", () => {
-  window.open("https://www.studentenwerk-dresden.de/feeds/", "_blank", "noreferrer");
+els.studyGoalInput.addEventListener("input", () => {
+  state.settings.studyGoal = els.studyGoalInput.value;
+  saveState();
 });
 els.clearMailDoneBtn.addEventListener("click", () => {
   state.mailFollowups = (state.mailFollowups || []).filter((item) => item.status !== "done");
   saveState();
   render();
 });
-els.seedGroceriesBtn.addEventListener("click", () => {
-  ["Pasta", "Tomatoes", "Tofu", "Coffee", "Dish soap"].forEach((name) => addGrocery(name, guessGroceryCategory(name)));
+els.seedLifeBtn.addEventListener("click", () => {
+  ["Buy flight tickets home", "Renew Deutschlandticket", "Pay rent", "Laundry reset"].forEach((title) => addTask({
+    title,
+    area: "Life Admin",
+    due: todayOffset(1),
+    energy: "light",
+    impact: 4,
+    effort: 0.5
+  }));
+});
+
+document.querySelectorAll(".life-tab").forEach((button) => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".life-tab").forEach((item) => item.classList.remove("active"));
+    document.querySelectorAll(".life-tab-panel").forEach((item) => item.classList.remove("active"));
+    button.classList.add("active");
+    document.querySelector(`[data-life-panel="${button.dataset.lifeTab}"]`)?.classList.add("active");
+  });
+});
+
+document.querySelectorAll(".life-action").forEach((button) => {
+  button.addEventListener("click", () => addTask({
+    title: button.dataset.lifeTask,
+    area: "Life Admin",
+    due: todayOffset(1),
+    energy: "light",
+    impact: 4,
+    effort: 0.5
+  }));
 });
 
 document.querySelectorAll(".segment").forEach((button) => {
@@ -1226,7 +1252,6 @@ els.resetBtn.addEventListener("click", () => {
   saveState();
   render();
   loadWeather();
-  loadUpdates();
 });
 
 els.voiceBtn.addEventListener("click", () => {
@@ -1248,4 +1273,3 @@ weatherState = state.weather?.data || null;
 setInterval(drawFocus, 1000 / 24);
 render();
 loadWeather();
-loadUpdates();

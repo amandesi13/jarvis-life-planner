@@ -2,6 +2,7 @@
 Thumbs.db
 *.log
 validation-*.png
+validation-*.js
 private-mail-followups*.json
 .env
 .env.local

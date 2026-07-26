@@ -18,29 +18,17 @@
         </div>
 
         <nav class="nav-list" aria-label="Planner views">
-          <button class="nav-item active" type="button" data-view="today" title="Today">
-            <span aria-hidden="true">T</span>
-            <span>Today</span>
-          </button>
-          <button class="nav-item" type="button" data-view="streak" title="Streak">
-            <span aria-hidden="true">🔥</span>
-            <span>Streak</span>
+          <button class="nav-item active" type="button" data-view="today" title="Plan">
+            <span aria-hidden="true">P</span>
+            <span>Plan</span>
           </button>
           <button class="nav-item" type="button" data-view="study" title="Study">
             <span aria-hidden="true">S</span>
             <span>Study</span>
           </button>
-          <button class="nav-item" type="button" data-view="tasks" title="Tasks">
-            <span aria-hidden="true">L</span>
-            <span>Tasks</span>
-          </button>
           <button class="nav-item" type="button" data-view="life" title="Life">
-            <span aria-hidden="true">G</span>
+            <span aria-hidden="true">L</span>
             <span>Life</span>
-          </button>
-          <button class="nav-item" type="button" data-view="updates" title="Updates">
-            <span aria-hidden="true">U</span>
-            <span>Updates</span>
           </button>
           <button class="nav-item" type="button" data-view="focus" title="Focus">
             <span aria-hidden="true">F</span>
@@ -85,6 +73,11 @@
             <p class="eyebrow" id="todayLabel">Today</p>
             <h2 id="greeting">Good day</h2>
           </div>
+          <article class="quote-card">
+            <p class="eyebrow">Daily Edge</p>
+            <blockquote id="dailyQuote"></blockquote>
+            <p id="quoteAuthor" class="quote-author"></p>
+          </article>
           <div class="topbar-actions">
             <button id="importBtn" class="icon-button" type="button" title="Import data" aria-label="Import data">I</button>
             <button id="exportBtn" class="icon-button" type="button" title="Export data" aria-label="Export data">E</button>
@@ -99,112 +92,52 @@
             <input
               id="assistantCommand"
               type="text"
-              placeholder="Add study networks tomorrow 2h high impact"
+              placeholder="Add buy flight tickets home tomorrow 1h important"
               autocomplete="off"
             />
           </div>
           <button id="voiceBtn" class="icon-button" type="button" title="Voice input" aria-label="Voice input">V</button>
           <button id="commandBtn" class="primary-button" type="button">Run</button>
           <button id="planBtn" class="primary-button accent" type="button">Plan Day</button>
-          <button id="refreshUpdatesBtn" class="primary-button quiet" type="button">Refresh</button>
         </section>
 
-        <section class="daily-brief" aria-label="Daily brief">
-          <article class="brief-card streak-brief">
-            <div>
-              <p class="eyebrow">Fire Streak</p>
-              <h3 id="streakCount">0 days</h3>
-              <p id="streakSummary">Log 2h of dedicated work to light today.</p>
-            </div>
-            <div class="flame-badge" id="flameBadge" aria-hidden="true"><span></span></div>
-          </article>
-          <article class="brief-card weather-card">
-            <div>
-              <p class="eyebrow">Dresden Weather</p>
-              <h3 id="weatherTemp">Loading</h3>
-              <p id="weatherSummary">Checking today's conditions</p>
-            </div>
-            <div class="weather-mark" id="weatherIcon" aria-hidden="true">--</div>
-          </article>
-          <article class="brief-card">
-            <p class="eyebrow">Study Readiness</p>
-            <h3 id="studyReadiness">Calibrating</h3>
-            <p id="studyReadinessText">Balancing deep work with lighter review.</p>
-          </article>
-          <article class="brief-card">
-            <p class="eyebrow">Life Queue</p>
-            <h3 id="lifeQueue">0 items</h3>
-            <p id="lifeQueueText">Grocery and admin load for today.</p>
-          </article>
-        </section>
-
-        <section class="content-grid">
-          <section class="panel streak-panel" data-panel="streak">
-            <div class="section-head">
+        <section class="lane-grid">
+          <section class="lane plan-lane" data-panel="today">
+            <div class="lane-head">
               <div>
-                <p class="eyebrow">Momentum</p>
-                <h3>Focus Calendar</h3>
-              </div>
-              <button id="logTwoHoursBtn" class="text-button fire-action" type="button">Log 2h</button>
-            </div>
-            <div class="streak-stage">
-              <div class="streak-ring" id="streakRing">
-                <span id="todayFocusMinutes">0</span>
-                <small>min today</small>
-              </div>
-              <div class="streak-copy">
-                <p class="eyebrow">Daily target</p>
-                <h4 id="dailyTargetStatus">120 minutes to fire</h4>
-                <p id="bestFocusDay">Best focused day will appear here.</p>
-              </div>
-            </div>
-            <div id="focusCalendar" class="focus-calendar" aria-label="Focus calendar"></div>
-          </section>
-
-          <section class="panel today-view" data-panel="today">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Timeline</p>
-                <h3>Daily Plan</h3>
+                <p class="eyebrow">Column 1</p>
+                <h3>Plan Today</h3>
               </div>
               <button id="clearPlanBtn" class="text-button" type="button">Clear</button>
             </div>
+
+            <div class="mini-status-row">
+              <article class="mini-status streak-brief">
+                <div>
+                  <p class="eyebrow">Fire Streak</p>
+                  <h4 id="streakCount">0 days</h4>
+                  <span id="streakSummary">Log 2h to light today.</span>
+                </div>
+                <div class="flame-badge" id="flameBadge" aria-hidden="true"><span></span></div>
+              </article>
+              <article class="mini-status weather-mini">
+                <div>
+                  <p class="eyebrow">Dresden</p>
+                  <h4 id="weatherTemp">Loading</h4>
+                  <span id="weatherSummary">Checking weather.</span>
+                </div>
+                <strong id="weatherIcon" aria-hidden="true">--</strong>
+              </article>
+            </div>
+
             <div id="timeline" class="timeline" aria-live="polite"></div>
-          </section>
 
-          <section class="panel study-view" data-panel="study">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Study Modes</p>
-                <h3>Learning Console</h3>
-              </div>
-              <button id="quickStudyBtn" class="text-button" type="button">Quick Study</button>
-            </div>
-            <div class="study-mode-grid" id="studyModes" aria-label="Study modes"></div>
-            <div class="study-workbench">
-              <div>
-                <p class="eyebrow">Active Mode</p>
-                <h4 id="activeStudyMode">Deep Work</h4>
-                <p id="activeStudyText">One demanding concept, no context switching.</p>
-              </div>
-              <div class="study-stats">
-                <span><strong id="studyBlockMinutes">50</strong> min</span>
-                <span><strong id="studyBreakMinutes">10</strong> break</span>
-              </div>
-            </div>
-          </section>
-
-          <section class="panel tasks-view" data-panel="tasks">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Backlog</p>
-                <h3>Tasks</h3>
-              </div>
+            <div class="lane-subhead">
+              <h4>Task Capture</h4>
               <button id="addTaskBtn" class="text-button" type="button">Add</button>
             </div>
-
-            <form id="taskForm" class="task-form">
-              <input id="taskTitle" type="text" placeholder="Task name" required />
+            <form id="taskForm" class="task-form compact-form">
+              <input id="taskTitle" type="text" placeholder="Add a task" required />
               <select id="taskArea" aria-label="Area">
                 <option>Study</option>
                 <option>Career</option>
@@ -243,38 +176,61 @@
                 <option value="effort">Effort</option>
               </select>
             </div>
-
             <div id="taskList" class="task-list" aria-live="polite"></div>
           </section>
 
-          <aside class="right-rail">
-            <section class="panel updates-panel" data-panel="updates">
-              <div class="section-head">
-                <div>
-                  <p class="eyebrow">Dresden</p>
-                  <h3>Local Updates</h3>
-                </div>
-                <button id="openSourcesBtn" class="text-button" type="button">Sources</button>
+          <section class="lane study-lane" data-panel="study">
+            <div class="lane-head">
+              <div>
+                <p class="eyebrow">Column 2</p>
+                <h3>Study Studio</h3>
               </div>
-              <div id="updatesList" class="updates-list" aria-live="polite"></div>
-            </section>
+              <button id="quickStudyBtn" class="text-button" type="button">Quick Study</button>
+            </div>
 
-            <section class="panel insight-panel">
-              <div class="section-head">
-                <div>
-                  <p class="eyebrow">Signals</p>
-                  <h3>Assistant</h3>
-                </div>
+            <div class="study-brief">
+              <div>
+                <p class="eyebrow">Study Readiness</p>
+                <h4 id="studyReadiness">Calibrating</h4>
+                <p id="studyReadinessText">Balancing deep work with lighter review.</p>
               </div>
-              <div id="insights" class="insights"></div>
-            </section>
+              <button id="logTwoHoursBtn" class="fire-pill" type="button">Log 2h</button>
+            </div>
 
-            <section class="panel focus-panel" data-panel="focus">
-              <div class="section-head">
-                <div>
-                  <p class="eyebrow">Focus</p>
-                  <h3 id="focusTitle">Ready</h3>
-                </div>
+            <label class="study-goal-box" for="studyGoalInput">
+              <span>Study goal</span>
+              <textarea id="studyGoalInput" rows="3" placeholder="What should be mastered today?"></textarea>
+            </label>
+
+            <div class="streak-stage">
+              <div class="streak-ring" id="streakRing">
+                <span id="todayFocusMinutes">0</span>
+                <small>min today</small>
+              </div>
+              <div class="streak-copy">
+                <p class="eyebrow">Daily target</p>
+                <h4 id="dailyTargetStatus">120 minutes to fire</h4>
+                <p id="bestFocusDay">Best focused day will appear here.</p>
+              </div>
+            </div>
+            <div id="focusCalendar" class="focus-calendar" aria-label="Focus calendar"></div>
+
+            <div class="study-mode-grid" id="studyModes" aria-label="Study modes"></div>
+            <div class="study-workbench">
+              <div>
+                <p class="eyebrow">Active Mode</p>
+                <h4 id="activeStudyMode">Deep Work</h4>
+                <p id="activeStudyText">One demanding concept, no context switching.</p>
+              </div>
+              <div class="study-stats">
+                <span><strong id="studyBlockMinutes">50</strong> min</span>
+                <span><strong id="studyBreakMinutes">10</strong> break</span>
+              </div>
+            </div>
+
+            <section class="focus-module" data-panel="focus">
+              <div class="lane-subhead">
+                <h4 id="focusTitle">Ready</h4>
               </div>
               <canvas id="focusCanvas" width="320" height="160" aria-label="Focus progress"></canvas>
               <div class="focus-timer" id="focusTime">45:00</div>
@@ -285,52 +241,52 @@
                 <button id="logThirtyBtn" class="text-button" type="button">+30m</button>
               </div>
             </section>
+          </section>
 
-            <section class="panel quote-panel">
-              <div class="section-head">
-                <div>
-                  <p class="eyebrow">Quote</p>
-                  <h3>Daily Edge</h3>
-                </div>
-              </div>
-              <blockquote id="dailyQuote"></blockquote>
-              <p id="quoteAuthor" class="quote-author"></p>
-            </section>
-
-            <section class="panel mail-panel">
-              <div class="section-head">
-                <div>
-                  <p class="eyebrow">Gmail</p>
-                  <h3>Job Follow-ups</h3>
-                </div>
-                <button id="clearMailDoneBtn" class="text-button" type="button">Clear Done</button>
-              </div>
-              <div id="mailFollowups" class="mail-list" aria-live="polite"></div>
-            </section>
-          </aside>
-
-          <section class="panel grocery-panel" data-panel="life">
-            <div class="section-head">
+          <section class="lane life-lane" data-panel="life">
+            <div class="lane-head">
               <div>
-                <p class="eyebrow">Grocery</p>
-                <h3>Practical List</h3>
+                <p class="eyebrow">Column 3</p>
+                <h3>Life Goals</h3>
               </div>
-              <button id="seedGroceriesBtn" class="text-button" type="button">Essentials</button>
+              <button id="seedLifeBtn" class="text-button" type="button">Essentials</button>
             </div>
-            <form id="groceryForm" class="grocery-form">
-              <input id="groceryName" type="text" placeholder="Add grocery item" required />
-              <select id="groceryCategory" aria-label="Grocery category">
-                <option>Produce</option>
-                <option>Protein</option>
-                <option>Pantry</option>
-                <option>Dairy</option>
-                <option>Household</option>
-                <option>Snacks</option>
-              </select>
-              <button class="primary-button" type="submit">Add</button>
-            </form>
-            <div id="grocerySuggestions" class="suggestion-strip"></div>
-            <div id="groceryList" class="grocery-list" aria-live="polite"></div>
+
+            <div class="life-tabs" role="group" aria-label="Life tabs">
+              <button class="life-tab active" type="button" data-life-tab="jobs">Jobs</button>
+              <button class="life-tab" type="button" data-life-tab="grocery">Grocery</button>
+              <button class="life-tab" type="button" data-life-tab="life">Life</button>
+            </div>
+
+            <section class="life-tab-panel active" data-life-panel="jobs">
+              <div id="mailFollowups" class="mail-list" aria-live="polite"></div>
+              <button id="clearMailDoneBtn" class="text-button full-width" type="button">Clear Done</button>
+            </section>
+
+            <section class="life-tab-panel" data-life-panel="grocery">
+              <form id="groceryForm" class="grocery-form six-slot-form">
+                <input id="groceryName" type="text" placeholder="Add one of 6 grocery slots" required />
+                <select id="groceryCategory" aria-label="Grocery category">
+                  <option>Grocery</option>
+                  <option>Home</option>
+                  <option>Travel</option>
+                  <option>Admin</option>
+                </select>
+                <button class="primary-button" type="submit">Add</button>
+              </form>
+              <div id="grocerySuggestions" class="suggestion-strip"></div>
+              <div id="groceryList" class="grocery-list six-slot-list" aria-live="polite"></div>
+            </section>
+
+            <section class="life-tab-panel" data-life-panel="life">
+              <div class="life-actions">
+                <button class="life-action" type="button" data-life-task="Buy flight tickets home">Buy flight tickets home</button>
+                <button class="life-action" type="button" data-life-task="Pay rent and check bank">Pay rent</button>
+                <button class="life-action" type="button" data-life-task="Laundry and room reset">Laundry reset</button>
+                <button class="life-action" type="button" data-life-task="Call family">Call family</button>
+              </div>
+              <div id="insights" class="insights"></div>
+            </section>
           </section>
         </section>
       </main>
