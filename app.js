@@ -1440,7 +1440,7 @@ els.finishFocusBtn.addEventListener("click", () => {
 els.logThirtyBtn.addEventListener("click", () => logFocusMinutes(30, "quick-log"));
 els.logTwoHoursBtn.addEventListener("click", () => logFocusMinutes(fireTargetMinutes, "fire-log"));
 
-els.exportBtn.addEventListener("click", () => {
+els.exportBtn?.addEventListener("click", () => {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -1450,8 +1450,8 @@ els.exportBtn.addEventListener("click", () => {
   URL.revokeObjectURL(url);
 });
 
-els.importBtn.addEventListener("click", () => els.importFile.click());
-els.importFile.addEventListener("change", async () => {
+els.importBtn?.addEventListener("click", () => els.importFile?.click());
+els.importFile?.addEventListener("change", async () => {
   const file = els.importFile.files[0];
   if (!file) return;
   const imported = JSON.parse(await file.text());
@@ -1467,7 +1467,7 @@ els.importFile.addEventListener("change", async () => {
   render();
 });
 
-els.resetBtn.addEventListener("click", () => {
+els.resetBtn?.addEventListener("click", () => {
   state = defaultState();
   weatherState = null;
   saveState();
