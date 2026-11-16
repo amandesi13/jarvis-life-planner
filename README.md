@@ -1,6 +1,11 @@
 # JARVIS Life Planner
 
-[![Live demo](https://img.shields.io/badge/demo-live-2ea44f)](https://amandesi13.github.io/jarvis-life-planner/)\n[![No build step](https://img.shields.io/badge/stack-vanilla%20JS-F7DF1E)](app.js)\n[![Local-first](https://img.shields.io/badge/data-local--first-blueviolet)](#)\n[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)\n\n**[Open the planner](https://amandesi13.github.io/jarvis-life-planner/)**: runs in the browser, data stays in local storage.\n
+[![Live demo](https://img.shields.io/badge/demo-live-2ea44f)](https://amandesi13.github.io/jarvis-life-planner/)
+[![No build step](https://img.shields.io/badge/stack-vanilla%20JS-F7DF1E)](app.js)
+[![Local-first](https://img.shields.io/badge/data-local--first-blueviolet)](#)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+**[Open the planner](https://amandesi13.github.io/jarvis-life-planner/)**: runs in the browser, data stays in local storage.
 
 A local-first intelligent planner for real-life tasks. It turns a messy backlog into a priority-ranked day plan, supports natural-language task capture, and includes a focus timer for execution.
 
